@@ -518,19 +518,6 @@ ADHD-related data requires special handling:
 - [ ] Performance impact is acceptable
 - [ ] Accessibility standards are maintained
 
-## 🆘 Getting Help
-
-### Development Support
-
-- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/adhd-productivity/discussions)
-- **Discord Community**: [Join our developer community](https://discord.gg/adhd-productivity-dev)
-- **Office Hours**: Weekly developer office hours (Wednesdays 2-3 PM UTC)
-
-### ADHD-Specific Resources
-
-- **ADHD Research**: [Curated research relevant to productivity tools](./docs/research/)
-- **User Personas**: [ADHD user personas and scenarios](./docs/personas/)
-- **Design Patterns**: [ADHD-friendly design patterns](./docs/design-patterns/)
 
 ### Mental Health Support
 
@@ -563,13 +550,6 @@ We maintain a Hall of Fame for significant contributors:
 - Community building and support
 
 ---
-
-## 📞 Contact
-
-- **Project Maintainers**: maintainers@adhd-productivity.dev
-- **Community Manager**: community@adhd-productivity.dev
-- **Security Issues**: security@adhd-productivity.dev
-- **General Questions**: hello@adhd-productivity.dev
 
 **Thank you for contributing to a more ADHD-friendly world! 🧠💙**
 
