@@ -1,0 +1,437 @@
+// Quick Capture Component Styles
+// ADHD-optimized rapid task entry with minimal friction
+
+@import '../tokens';
+
+.quick-capture {
+  background: $color-base-surface;
+  border: 2px solid $color-brand-primary-light;
+  border-radius: $border-radius-xl;
+  padding: $spacing-6;
+  box-shadow: $shadow-card-elevated;
+  transition: all $transition-duration-normal $transition-timing-ease-out;
+  
+  &:focus-within {
+    border-color: $color-brand-primary;
+    box-shadow: $shadow-card-elevated, $shadow-focus;
+    transform: translateY(-2px);
+  }
+  
+  &.capture-focused {
+    background: linear-gradient(135deg, $color-brand-primary-light 0%, rgba(255, 255, 255, 0.9) 100%);
+  }
+}
+
+// Main input area
+.capture-input-area {
+  position: relative;
+  margin-bottom: $spacing-4;
+  
+  .capture-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: $body-large-size;
+    font-weight: $body-base-weight;
+    line-height: $line-height-relaxed;
+    color: $color-text-primary;
+    resize: none;
+    min-height: 60px;
+    padding: $spacing-3 $spacing-4;
+    border-radius: $border-radius-base;
+    transition: background-color $transition-duration-fast $transition-timing-ease-out;
+    
+    &::placeholder {
+      color: $color-text-tertiary;
+      font-style: italic;
+    }
+    
+    &:focus {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+    }
+  }
+  
+  // Auto-expanding textarea
+  .capture-input-expanding {
+    min-height: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  // Character counter
+  .capture-counter {
+    position: absolute;
+    bottom: $spacing-1;
+    right: $spacing-2;
+    font-size: $body-xs-size;
+    color: $color-text-tertiary;
+    pointer-events: none;
+    
+    &.counter-warning {
+      color: $color-warning;
+    }
+    
+    &.counter-limit {
+      color: $color-error;
+    }
+  }
+}
+
+// Quick actions bar
+.capture-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-2;
+  
+  .capture-actions-left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+  
+  .capture-actions-right {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+}
+
+// Priority quick select
+.priority-selector {
+  display: flex;
+  gap: $spacing-1;
+  
+  .priority-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 2px solid transparent;
+    border-radius: $border-radius-full;
+    cursor: pointer;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    font-size: $body-xs-size;
+    font-weight: $font-weight-bold;
+    
+    &.priority-high {
+      background: $color-priority-high-light;
+      color: $color-priority-high;
+      
+      &:hover,
+      &.selected {
+        background: $color-priority-high;
+        color: white;
+        border-color: $color-priority-high-dark;
+      }
+    }
+    
+    &.priority-medium {
+      background: $color-priority-medium-light;
+      color: $color-priority-medium;
+      
+      &:hover,
+      &.selected {
+        background: $color-priority-medium;
+        color: white;
+        border-color: $color-priority-medium-dark;
+      }
+    }
+    
+    &.priority-low {
+      background: $color-priority-low-light;
+      color: $color-priority-low;
+      
+      &:hover,
+      &.selected {
+        background: $color-priority-low;
+        color: white;
+        border-color: $color-priority-low-dark;
+      }
+    }
+  }
+}
+
+// Quick tags
+.tag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1;
+  margin-top: $spacing-2;
+  
+  .tag-suggestion {
+    display: inline-flex;
+    align-items: center;
+    padding: $spacing-1 $spacing-2;
+    background: $color-gray-100;
+    color: $color-text-secondary;
+    border-radius: $border-radius-full;
+    font-size: $body-xs-size;
+    cursor: pointer;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    
+    &:hover {
+      background: $color-brand-primary-light;
+      color: $color-brand-primary;
+    }
+    
+    &.tag-selected {
+      background: $color-brand-primary;
+      color: white;
+    }
+  }
+}
+
+// Voice capture indicator
+.voice-capture {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  background: $color-error-light;
+  border: 2px solid $color-error;
+  border-radius: $border-radius-base;
+  color: $color-error-dark;
+  font-size: $body-small-size;
+  animation: voicePulse 2s ease-in-out infinite;
+  
+  .voice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: $color-error;
+    color: white;
+  }
+}
+
+@keyframes voicePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+// Smart suggestions
+.capture-suggestions {
+  margin-top: $spacing-4;
+  padding-top: $spacing-4;
+  border-top: $border-divider;
+  
+  .suggestions-title {
+    font-size: $body-small-size;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-2;
+  }
+  
+  .suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-2 $spacing-3;
+    border-radius: $border-radius-base;
+    cursor: pointer;
+    transition: background-color $transition-duration-fast $transition-timing-ease-out;
+    
+    &:hover {
+      background: $color-gray-50;
+    }
+    
+    .suggestion-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      color: $color-text-tertiary;
+    }
+    
+    .suggestion-text {
+      flex: 1;
+      font-size: $body-base-size;
+      color: $color-text-primary;
+    }
+    
+    .suggestion-context {
+      font-size: $body-xs-size;
+      color: $color-text-tertiary;
+    }
+  }
+}
+
+// Energy level indicator
+.energy-selector {
+  display: flex;
+  gap: $spacing-1;
+  
+  .energy-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    
+    &.energy-high {
+      background: $color-energy-high;
+      &:hover,
+      &.selected {
+        box-shadow: 0 0 0 2px $color-energy-high;
+      }
+    }
+    
+    &.energy-medium {
+      background: $color-energy-medium;
+      &:hover,
+      &.selected {
+        box-shadow: 0 0 0 2px $color-energy-medium;
+      }
+    }
+    
+    &.energy-low {
+      background: $color-energy-low;
+      &:hover,
+      &.selected {
+        box-shadow: 0 0 0 2px $color-energy-low;
+      }
+    }
+    
+    &.energy-depleted {
+      background: $color-energy-depleted;
+      &:hover,
+      &.selected {
+        box-shadow: 0 0 0 2px $color-energy-depleted;
+      }
+    }
+  }
+}
+
+// Keyboard shortcuts help
+.capture-shortcuts {
+  margin-top: $spacing-3;
+  padding: $spacing-3;
+  background: $color-gray-50;
+  border-radius: $border-radius-base;
+  
+  .shortcuts-title {
+    font-size: $body-xs-size;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-2;
+  }
+  
+  .shortcut-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: $spacing-1;
+    
+    .shortcut-item {
+      font-size: $body-xs-size;
+      color: $color-text-tertiary;
+      
+      .shortcut-key {
+        font-family: $font-family-mono;
+        background: $color-gray-200;
+        padding: 1px $spacing-1;
+        border-radius: $border-radius-sm;
+        font-weight: $font-weight-medium;
+      }
+    }
+  }
+}
+
+// Floating quick capture
+.quick-capture-floating {
+  position: fixed;
+  bottom: $spacing-8;
+  right: $spacing-8;
+  width: 400px;
+  max-width: calc(100vw - #{$spacing-4});
+  z-index: $z-index-modal;
+  box-shadow: $shadow-xl;
+  
+  @include mobile-only {
+    bottom: calc(#{$spacing-6} + #{$spacing-safe-area-bottom});
+    right: $spacing-4;
+    left: $spacing-4;
+    width: auto;
+  }
+  
+  &.capture-minimized {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    
+    .capture-content {
+      display: none;
+    }
+    
+    &::after {
+      content: '+';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      font-weight: bold;
+      color: $color-brand-primary;
+    }
+  }
+}
+
+// Processing state
+.capture-processing {
+  pointer-events: none;
+  opacity: 0.7;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+    animation: shimmer 2s infinite;
+  }
+}
+
+// Mobile optimizations
+@include mobile-only {
+  .quick-capture {
+    padding: $spacing-4;
+    
+    .capture-input {
+      font-size: $body-base-size;
+    }
+    
+    .capture-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: $spacing-3;
+    }
+    
+    .priority-selector,
+    .energy-selector {
+      justify-content: center;
+    }
+    
+    .tag-suggestions {
+      justify-content: center;
+    }
+  }
+}

@@ -1,0 +1,85 @@
+// ADHD-Optimized Spacing System
+// Based on 8px grid system for mathematical harmony and visual rhythm
+
+// Base spacing unit
+$spacing-base: 8px;
+
+// Spacing Scale
+$spacing-0: 0;
+$spacing-1: $spacing-base * 0.5;  // 4px
+$spacing-2: $spacing-base;        // 8px
+$spacing-3: $spacing-base * 1.5;  // 12px
+$spacing-4: $spacing-base * 2;    // 16px
+$spacing-5: $spacing-base * 2.5;  // 20px
+$spacing-6: $spacing-base * 3;    // 24px
+$spacing-7: $spacing-base * 3.5;  // 28px
+$spacing-8: $spacing-base * 4;    // 32px
+$spacing-10: $spacing-base * 5;   // 40px
+$spacing-12: $spacing-base * 6;   // 48px
+$spacing-16: $spacing-base * 8;   // 64px
+$spacing-20: $spacing-base * 10;  // 80px
+$spacing-24: $spacing-base * 12;  // 96px
+$spacing-32: $spacing-base * 16;  // 128px
+
+// Semantic Spacing
+$spacing-xs: $spacing-1;     // 4px - Tight spacing
+$spacing-sm: $spacing-2;     // 8px - Small spacing
+$spacing-md: $spacing-4;     // 16px - Medium spacing
+$spacing-lg: $spacing-6;     // 24px - Large spacing
+$spacing-xl: $spacing-8;     // 32px - Extra large spacing
+$spacing-2xl: $spacing-12;   // 48px - Section spacing
+$spacing-3xl: $spacing-16;   // 64px - Page spacing
+
+// Component-specific spacing
+$spacing-component-padding: $spacing-4;        // 16px
+$spacing-component-margin: $spacing-6;         // 24px
+$spacing-component-gap: $spacing-4;            // 16px
+
+$spacing-card-padding: $spacing-6;             // 24px
+$spacing-card-margin: $spacing-4;              // 16px
+$spacing-card-gap: $spacing-4;                 // 16px
+
+$spacing-button-padding-x: $spacing-4;         // 16px
+$spacing-button-padding-y: $spacing-2;         // 8px
+$spacing-button-gap: $spacing-2;               // 8px
+
+$spacing-input-padding-x: $spacing-3;          // 12px
+$spacing-input-padding-y: $spacing-2;          // 8px
+
+$spacing-form-group-gap: $spacing-4;           // 16px
+$spacing-form-section-gap: $spacing-8;         // 32px
+
+// Layout spacing
+$spacing-container-padding: $spacing-6;        // 24px
+$spacing-section-padding: $spacing-8;          // 32px
+$spacing-page-padding: $spacing-6;             // 24px
+
+// Grid and column spacing
+$spacing-grid-gap: $spacing-6;                 // 24px
+$spacing-column-gap: $spacing-6;               // 24px
+
+// Safe areas for mobile
+$spacing-safe-area-top: env(safe-area-inset-top, 0);
+$spacing-safe-area-bottom: env(safe-area-inset-bottom, 0);
+$spacing-safe-area-left: env(safe-area-inset-left, 0);
+$spacing-safe-area-right: env(safe-area-inset-right, 0);
+
+// Responsive spacing breakpoints
+$spacing-mobile: $spacing-4;                   // 16px
+$spacing-tablet: $spacing-6;                   // 24px
+$spacing-desktop: $spacing-8;                  // 32px
+
+// Content density levels for ADHD optimization
+$spacing-density-compact: 0.75;                // 75% of normal spacing
+$spacing-density-normal: 1;                    // 100% normal spacing
+$spacing-density-comfortable: 1.25;            // 125% more breathing room
+
+// Focus and interaction spacing
+$spacing-focus-outline: $spacing-1;            // 4px
+$spacing-focus-offset: $spacing-1;             // 4px
+$spacing-touch-target: 44px;                   // Minimum touch target size
+
+// Visual hierarchy spacing
+$spacing-related-content: $spacing-2;          // 8px - Related elements
+$spacing-section-break: $spacing-6;            // 24px - Section breaks
+$spacing-major-break: $spacing-12;             // 48px - Major sections

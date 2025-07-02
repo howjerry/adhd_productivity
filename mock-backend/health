@@ -1,0 +1,1 @@
+{"status":"healthy","timestamp":"2025-01-02T00:00:00Z","services":{"database":"connected","redis":"connected","api":"running"}}

@@ -1,0 +1,98 @@
+// ADHD-Optimized Color System
+// Based on cognitive psychology research and ADHD-specific needs
+
+// Base Colors - Low stimulation background system
+$color-base-white: #ffffff;
+$color-base-background: #f8f9fa;
+$color-base-background-secondary: #ffffff;
+$color-base-surface: #ffffff;
+$color-base-surface-elevated: #ffffff;
+
+// Text Colors - High contrast for readability
+$color-text-primary: #2c3e50;
+$color-text-secondary: #6c757d;
+$color-text-tertiary: #adb5bd;
+$color-text-inverse: #ffffff;
+$color-text-disabled: #dee2e6;
+
+// Priority System Colors - Carefully calibrated for ADHD focus
+$color-priority-high: #dc3545;
+$color-priority-high-light: #f8d7da;
+$color-priority-high-dark: #b02a37;
+
+$color-priority-medium: #fd7e14;
+$color-priority-medium-light: #fff3cd;
+$color-priority-medium-dark: #e8690b;
+
+$color-priority-low: #28a745;
+$color-priority-low-light: #d4edda;
+$color-priority-low-dark: #1e7e34;
+
+// Functional Colors - Status and feedback
+$color-success: #28a745;
+$color-success-light: #d4edda;
+$color-success-dark: #155724;
+
+$color-warning: #ffc107;
+$color-warning-light: #fff3cd;
+$color-warning-dark: #856404;
+
+$color-error: #dc3545;
+$color-error-light: #f8d7da;
+$color-error-dark: #721c24;
+
+$color-info: #17a2b8;
+$color-info-light: #d1ecf1;
+$color-info-dark: #0c5460;
+
+// Brand Colors - Calming yet engaging
+$color-brand-primary: #6366f1;
+$color-brand-primary-light: #e0e7ff;
+$color-brand-primary-dark: #4338ca;
+
+$color-brand-secondary: #8b5cf6;
+$color-brand-secondary-light: #ede9fe;
+$color-brand-secondary-dark: #7c3aed;
+
+// Neutral Grays - Professional and calming
+$color-gray-50: #f9fafb;
+$color-gray-100: #f3f4f6;
+$color-gray-200: #e5e7eb;
+$color-gray-300: #d1d5db;
+$color-gray-400: #9ca3af;
+$color-gray-500: #6b7280;
+$color-gray-600: #4b5563;
+$color-gray-700: #374151;
+$color-gray-800: #1f2937;
+$color-gray-900: #111827;
+
+// Focus and Interaction Colors
+$color-focus: #6366f1;
+$color-focus-ring: rgba(99, 102, 241, 0.2);
+
+// Gamification Colors - Motivating but not overstimulating
+$color-achievement: #f59e0b;
+$color-achievement-light: #fef3c7;
+$color-streak: #10b981;
+$color-streak-light: #d1fae5;
+$color-progress: #6366f1;
+$color-progress-light: #e0e7ff;
+
+// Dark Mode Colors (for future implementation)
+$color-dark-background: #1a1a1a;
+$color-dark-surface: #2d2d2d;
+$color-dark-text-primary: #e0e0e0;
+$color-dark-text-secondary: #b0b0b0;
+
+// Energy Level Colors - Visual representation of focus states
+$color-energy-high: #10b981;
+$color-energy-medium: #f59e0b;
+$color-energy-low: #ef4444;
+$color-energy-depleted: #6b7280;
+
+// Time Block Colors - For visual scheduling
+$color-deep-work: #6366f1;
+$color-admin: #8b5cf6;
+$color-creative: #06b6d4;
+$color-break: #10b981;
+$color-meeting: #f59e0b;

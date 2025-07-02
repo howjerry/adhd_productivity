@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHD 生產力系統 - 後端 API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f8f9fa;
+        }
+        .header {
+            text-align: center;
+            padding: 2rem 0;
+            background: #4f46e5;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .api-info {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+        .endpoints {
+            list-style: none;
+            padding: 0;
+        }
+        .endpoints li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .get { background: #3b82f6; color: white; }
+        .post { background: #10b981; color: white; }
+        .put { background: #f59e0b; color: white; }
+        .delete { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 ADHD 生產力系統</h1>
+        <h2>後端 API 服務</h2>
+        <div class="status">✅ 服務運行中</div>
+    </div>
+
+    <div class="api-info">
+        <h3>📋 API 端點</h3>
+        <ul class="endpoints">
+            <li><span class="method get">GET</span> /api/health - 健康檢查</li>
+            <li><span class="method post">POST</span> /api/auth/login - 使用者登入</li>
+            <li><span class="method post">POST</span> /api/auth/register - 使用者註冊</li>
+            <li><span class="method get">GET</span> /api/tasks - 取得任務清單</li>
+            <li><span class="method post">POST</span> /api/tasks - 建立新任務</li>
+            <li><span class="method put">PUT</span> /api/tasks/{id} - 更新任務</li>
+            <li><span class="method delete">DELETE</span> /api/tasks/{id} - 刪除任務</li>
+            <li><span class="method get">GET</span> /api/capture - 取得捕捉項目</li>
+            <li><span class="method post">POST</span> /api/capture - 建立捕捉項目</li>
+            <li><span class="method get">GET</span> /api/timer/sessions - 取得計時器會話</li>
+            <li><span class="method post">POST</span> /api/timer/start - 開始計時器</li>
+        </ul>
+    </div>
+
+    <div class="api-info">
+        <h3>🔗 相關連結</h3>
+        <ul>
+            <li><a href="/swagger" target="_blank">📋 API 文檔 (Swagger)</a></li>
+            <li><a href="http://localhost:5050" target="_blank">🗄️ 資料庫管理 (pgAdmin)</a></li>
+            <li><a href="http://localhost:3000" target="_blank">🎨 前端應用</a></li>
+            <li><a href="http://localhost" target="_blank">🏠 主要應用</a></li>
+        </ul>
+    </div>
+
+    <div class="api-info">
+        <h3>📊 系統狀態</h3>
+        <p><strong>資料庫連線:</strong> <span style="color: #10b981;">✅ 已連接 (PostgreSQL)</span></p>
+        <p><strong>快取服務:</strong> <span style="color: #10b981;">✅ 已連接 (Redis)</span></p>
+        <p><strong>API 版本:</strong> v1.0.0</p>
+        <p><strong>環境:</strong> Development</p>
+    </div>
+
+    <script>
+        // 簡單的狀態檢查
+        setInterval(() => {
+            const statusElement = document.querySelector('.status');
+            statusElement.style.animation = 'pulse 2s infinite';
+        }, 5000);
+    </script>
+</body>
+</html>

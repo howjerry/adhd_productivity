@@ -1,0 +1,358 @@
+// Card Component Styles
+// ADHD-optimized card design with clear visual hierarchy and subtle elevation
+
+@import '../tokens';
+
+.card {
+  background-color: $color-base-surface;
+  border: $border-light;
+  border-radius: $border-radius-card;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  transition: all $transition-duration-normal $transition-timing-ease-out;
+  
+  // Hover effects for interactive cards
+  &.card-hover {
+    cursor: pointer;
+    
+    &:hover {
+      box-shadow: $shadow-card-hover;
+      transform: translateY(-2px);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  // Focus handling for keyboard navigation
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-card-hover, $shadow-focus;
+  }
+}
+
+// Card elevation levels
+.card-flat {
+  box-shadow: none;
+  border: $border-default;
+}
+
+.card-elevated {
+  box-shadow: $shadow-card-elevated;
+  border: none;
+}
+
+// Card padding sizes
+.card-sm {
+  padding: $spacing-4;
+}
+
+.card-md {
+  padding: $spacing-6;
+}
+
+.card-lg {
+  padding: $spacing-8;
+}
+
+// Card header
+.card-header {
+  padding: $spacing-6 $spacing-6 $spacing-4 $spacing-6;
+  border-bottom: $border-divider;
+  margin: -$spacing-6 -$spacing-6 $spacing-6 -$spacing-6;
+  
+  .card-title {
+    margin: 0;
+    font-size: $heading-h4-size;
+    font-weight: $heading-h4-weight;
+    color: $color-text-primary;
+  }
+  
+  .card-subtitle {
+    margin: $spacing-1 0 0 0;
+    font-size: $body-small-size;
+    color: $color-text-secondary;
+  }
+  
+  // Header actions
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    margin-left: auto;
+  }
+}
+
+// Card body
+.card-body {
+  flex: 1;
+}
+
+// Card footer
+.card-footer {
+  padding: $spacing-4 $spacing-6 $spacing-6 $spacing-6;
+  border-top: $border-divider;
+  margin: $spacing-6 -$spacing-6 -$spacing-6 -$spacing-6;
+  background-color: $color-gray-50;
+  
+  .card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $spacing-2;
+  }
+}
+
+// Task-specific card styling
+.card-task {
+  position: relative;
+  transition: all $transition-duration-normal $transition-timing-ease-out;
+  
+  // Priority indicator
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: $color-gray-300;
+    border-radius: $border-radius-card 0 0 $border-radius-card;
+  }
+  
+  &.task-priority-high::before {
+    background-color: $color-priority-high;
+  }
+  
+  &.task-priority-medium::before {
+    background-color: $color-priority-medium;
+  }
+  
+  &.task-priority-low::before {
+    background-color: $color-priority-low;
+  }
+  
+  // Task status indicators
+  &.task-completed {
+    opacity: 0.7;
+    
+    .task-title {
+      text-decoration: line-through;
+      color: $color-text-secondary;
+    }
+  }
+  
+  &.task-in-progress {
+    border-color: $color-info;
+    box-shadow: $shadow-card, 0 0 0 1px $color-info;
+  }
+  
+  &.task-overdue {
+    border-color: $color-error;
+    background-color: $color-error-light;
+  }
+}
+
+// Energy level indicators for tasks
+.card-energy-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $border-radius-full;
+  font-size: $body-xs-size;
+  font-weight: $font-weight-medium;
+  
+  &.energy-high {
+    background-color: $color-energy-high;
+    color: white;
+  }
+  
+  &.energy-medium {
+    background-color: $color-energy-medium;
+    color: white;
+  }
+  
+  &.energy-low {
+    background-color: $color-energy-low;
+    color: white;
+  }
+  
+  &.energy-depleted {
+    background-color: $color-energy-depleted;
+    color: white;
+  }
+}
+
+// Time block cards
+.card-time-block {
+  border-left: 4px solid $color-gray-300;
+  
+  &.block-deep-work {
+    border-left-color: $color-deep-work;
+  }
+  
+  &.block-admin {
+    border-left-color: $color-admin;
+  }
+  
+  &.block-creative {
+    border-left-color: $color-creative;
+  }
+  
+  &.block-meeting {
+    border-left-color: $color-meeting;
+  }
+  
+  &.block-break {
+    border-left-color: $color-break;
+  }
+}
+
+// Progress cards for gamification
+.card-progress {
+  background: linear-gradient(135deg, $color-brand-primary-light 0%, $color-brand-secondary-light 100%);
+  border: none;
+  color: $color-text-primary;
+  
+  .progress-number {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    line-height: 1;
+  }
+  
+  .progress-label {
+    font-size: $body-small-size;
+    color: $color-text-secondary;
+    margin-top: $spacing-1;
+  }
+}
+
+// Achievement cards
+.card-achievement {
+  text-align: center;
+  border: 2px solid $color-achievement;
+  background: linear-gradient(135deg, $color-achievement-light 0%, transparent 100%);
+  
+  .achievement-icon {
+    font-size: $font-size-5xl;
+    margin-bottom: $spacing-2;
+  }
+  
+  .achievement-title {
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-1;
+  }
+  
+  .achievement-description {
+    font-size: $body-small-size;
+    color: $color-text-secondary;
+  }
+  
+  &.achievement-unlocked {
+    animation: achievementPulse 2s ease-in-out;
+  }
+}
+
+@keyframes achievementPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: $shadow-card;
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: $shadow-glow-achievement;
+  }
+}
+
+// Card grid layouts
+.card-grid {
+  display: grid;
+  gap: $spacing-6;
+  
+  &.grid-responsive {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+  
+  &.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    
+    @include respond-below(md) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  &.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    
+    @include respond-below(lg) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @include respond-below(md) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  &.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+    
+    @include respond-below(xl) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    @include respond-below(lg) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @include respond-below(md) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Compact card variation for dense layouts
+.card-compact {
+  padding: $spacing-4;
+  
+  .card-header {
+    padding: 0 0 $spacing-2 0;
+    margin: 0 0 $spacing-2 0;
+    
+    .card-title {
+      font-size: $body-large-size;
+    }
+  }
+  
+  .card-footer {
+    padding: $spacing-2 0 0 0;
+    margin: $spacing-2 0 0 0;
+  }
+}
+
+// Card loading state
+.card-loading {
+  pointer-events: none;
+  opacity: 0.6;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: shimmer 2s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

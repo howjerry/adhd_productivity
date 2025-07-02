@@ -1,0 +1,413 @@
+// Main Content Layout Styles
+// ADHD-optimized content area with proper spacing and focus management
+
+@import '../tokens';
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: $color-base-background;
+  transition: margin-left $transition-duration-normal $transition-timing-ease-out;
+  
+  // Sidebar open state
+  &.sidebar-open {
+    margin-left: 280px;
+    
+    @include mobile-only {
+      margin-left: 0;
+    }
+  }
+  
+  // Sidebar closed state
+  &.sidebar-closed {
+    margin-left: 80px;
+    
+    @include mobile-only {
+      margin-left: 0;
+    }
+  }
+  
+  @include mobile-only {
+    margin-left: 0 !important;
+  }
+}
+
+// Content header
+.content-header {
+  background: $color-base-surface;
+  border-bottom: $border-divider;
+  padding: $spacing-6 $spacing-8;
+  position: sticky;
+  top: 0;
+  z-index: $z-index-sticky;
+  backdrop-filter: blur(10px);
+  
+  @include mobile-only {
+    padding: $spacing-4 $spacing-6;
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: $max-width-container;
+    margin: 0 auto;
+    
+    @include mobile-only {
+      flex-direction: column;
+      align-items: stretch;
+      gap: $spacing-3;
+    }
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-4;
+    
+    .page-title {
+      font-size: $heading-h1-size;
+      font-weight: $heading-h1-weight;
+      color: $color-text-primary;
+      margin: 0;
+      
+      @include mobile-only {
+        font-size: $heading-h2-size;
+      }
+    }
+    
+    .page-subtitle {
+      font-size: $body-large-size;
+      color: $color-text-secondary;
+      margin: 0;
+    }
+    
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+      font-size: $body-small-size;
+      color: $color-text-tertiary;
+      
+      .breadcrumb-item {
+        &:not(:last-child)::after {
+          content: '/';
+          margin-left: $spacing-2;
+          color: $color-text-tertiary;
+        }
+        
+        &:last-child {
+          color: $color-text-primary;
+          font-weight: $font-weight-medium;
+        }
+      }
+    }
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    
+    @include mobile-only {
+      justify-content: space-between;
+    }
+  }
+}
+
+// Main content area
+.content-main {
+  flex: 1;
+  padding: $spacing-8;
+  max-width: $max-width-container;
+  margin: 0 auto;
+  width: 100%;
+  
+  @include mobile-only {
+    padding: $spacing-6 $spacing-4;
+  }
+  
+  // Content sections
+  .content-section {
+    margin-bottom: $spacing-8;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: $spacing-6;
+      
+      .section-title {
+        font-size: $heading-h2-size;
+        font-weight: $heading-h2-weight;
+        color: $color-text-primary;
+        margin: 0;
+      }
+      
+      .section-actions {
+        display: flex;
+        align-items: center;
+        gap: $spacing-2;
+      }
+      
+      @include mobile-only {
+        flex-direction: column;
+        align-items: stretch;
+        gap: $spacing-3;
+        
+        .section-actions {
+          justify-content: center;
+        }
+      }
+    }
+    
+    .section-description {
+      font-size: $body-base-size;
+      color: $color-text-secondary;
+      margin-bottom: $spacing-4;
+      max-width: $max-width-prose;
+    }
+  }
+  
+  // Grid layouts
+  .content-grid {
+    display: grid;
+    gap: $spacing-6;
+    
+    &.grid-1 {
+      grid-template-columns: 1fr;
+    }
+    
+    &.grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+      
+      @include mobile-only {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    &.grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+      
+      @include respond-below(lg) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      @include mobile-only {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    &.grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+      
+      @include respond-below(xl) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      @include respond-below(lg) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      @include mobile-only {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    &.grid-auto {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+  
+  // Two-column layout
+  .content-two-column {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: $spacing-8;
+    
+    @include respond-below(lg) {
+      grid-template-columns: 1fr;
+      gap: $spacing-6;
+    }
+    
+    .main-column {
+      min-width: 0; // Prevent overflow
+    }
+    
+    .side-column {
+      min-width: 0; // Prevent overflow
+    }
+  }
+  
+  // Three-column layout
+  .content-three-column {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: $spacing-6;
+    
+    @include respond-below(xl) {
+      grid-template-columns: 1fr 2fr;
+      
+      .right-column {
+        display: none;
+      }
+    }
+    
+    @include respond-below(lg) {
+      grid-template-columns: 1fr;
+      
+      .left-column,
+      .right-column {
+        display: none;
+      }
+    }
+  }
+}
+
+// Empty states
+.content-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: $spacing-8;
+  
+  .empty-icon {
+    font-size: 4rem;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-4;
+  }
+  
+  .empty-title {
+    font-size: $heading-h3-size;
+    font-weight: $heading-h3-weight;
+    color: $color-text-primary;
+    margin-bottom: $spacing-2;
+  }
+  
+  .empty-description {
+    font-size: $body-base-size;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-6;
+    max-width: 400px;
+  }
+  
+  .empty-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-3;
+    
+    @include mobile-only {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+}
+
+// Loading states
+.content-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid $color-gray-200;
+    border-top: 3px solid $color-brand-primary;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  .loading-text {
+    margin-left: $spacing-4;
+    font-size: $body-base-size;
+    color: $color-text-secondary;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Focus management for ADHD
+.content-focus-zone {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -$spacing-2;
+    left: -$spacing-2;
+    right: -$spacing-2;
+    bottom: -$spacing-2;
+    border: 2px solid transparent;
+    border-radius: $border-radius-lg;
+    transition: border-color $transition-duration-fast $transition-timing-ease-out;
+    pointer-events: none;
+  }
+  
+  &:focus-within::before {
+    border-color: $color-brand-primary;
+  }
+}
+
+// Scroll behavior optimization
+.content-scrollable {
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $color-gray-100;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $color-gray-300;
+    border-radius: 4px;
+    
+    &:hover {
+      background: $color-gray-400;
+    }
+  }
+}
+
+// Print styles for content
+@media print {
+  .content-header,
+  .header-right,
+  .section-actions {
+    display: none !important;
+  }
+  
+  .content-main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  
+  .content-grid {
+    grid-template-columns: 1fr !important;
+    gap: $spacing-4 !important;
+  }
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+  .main-content {
+    transition: none;
+  }
+}

@@ -1,0 +1,65 @@
+// ADHD-Optimized Shadow System
+// Subtle elevation for clear visual hierarchy without overstimulation
+
+// Base shadow color
+$shadow-color: rgba(0, 0, 0, 0.1);
+$shadow-color-dark: rgba(0, 0, 0, 0.2);
+$shadow-color-subtle: rgba(0, 0, 0, 0.05);
+
+// Shadow Levels - Progressive elevation
+$shadow-none: none;
+
+$shadow-xs: 0 1px 2px 0 $shadow-color-subtle;
+
+$shadow-sm: 
+  0 1px 3px 0 $shadow-color,
+  0 1px 2px -1px $shadow-color;
+
+$shadow-base: 
+  0 4px 6px -1px $shadow-color,
+  0 2px 4px -2px $shadow-color;
+
+$shadow-md: 
+  0 10px 15px -3px $shadow-color,
+  0 4px 6px -4px $shadow-color;
+
+$shadow-lg: 
+  0 20px 25px -5px $shadow-color,
+  0 8px 10px -6px $shadow-color;
+
+$shadow-xl: 
+  0 25px 50px -12px $shadow-color-dark;
+
+$shadow-2xl: 
+  0 25px 50px -12px $shadow-color-dark;
+
+// Semantic shadows for components
+$shadow-card: $shadow-sm;
+$shadow-card-hover: $shadow-base;
+$shadow-card-elevated: $shadow-md;
+
+$shadow-button: $shadow-xs;
+$shadow-button-hover: $shadow-sm;
+$shadow-button-active: inset 0 2px 4px 0 $shadow-color;
+
+$shadow-dropdown: $shadow-lg;
+$shadow-modal: $shadow-xl;
+$shadow-tooltip: $shadow-base;
+
+// Focus shadows
+$shadow-focus: 0 0 0 3px rgba(99, 102, 241, 0.2);
+$shadow-focus-error: 0 0 0 3px rgba(220, 53, 69, 0.2);
+$shadow-focus-success: 0 0 0 3px rgba(40, 167, 69, 0.2);
+
+// Inner shadows for inputs
+$shadow-inner: inset 0 2px 4px 0 $shadow-color-subtle;
+$shadow-inner-focus: inset 0 2px 4px 0 $shadow-color, $shadow-focus;
+
+// Glow effects for achievements and progress
+$shadow-glow-success: 0 0 20px rgba(40, 167, 69, 0.3);
+$shadow-glow-warning: 0 0 20px rgba(245, 158, 11, 0.3);
+$shadow-glow-achievement: 0 0 20px rgba(245, 158, 11, 0.4);
+
+// Dark mode shadows (for future use)
+$shadow-dark-base: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+$shadow-dark-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.4);

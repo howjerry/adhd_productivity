@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 ADHD 生產力管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #4f46e5;
+        }
+        
+        .feature-description {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .demo-section {
+            background: white;
+            margin: 3rem 0;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .demo-login {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .login-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+        
+        .demo-accounts {
+            background: #f0f9ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #0ea5e9;
+        }
+        
+        .demo-accounts h4 {
+            color: #0c4a6e;
+            margin-bottom: 1rem;
+        }
+        
+        .account-item {
+            margin-bottom: 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.875rem;
+            color: #1e40af;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .service-link {
+            display: block;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #374151;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .service-link:hover {
+            background: #e5e7eb;
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+        }
+        
+        .service-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .service-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .service-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        @media (max-width: 768px) {
+            .demo-login {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 ADHD 生產力管理系統</h1>
+            <p>專為 ADHD 使用者設計的生產力解決方案</p>
+        </div>
+
+        <div class="main-content">
+            <div class="feature-card">
+                <span class="feature-icon">🎪</span>
+                <h3 class="feature-title">零摩擦捕捉</h3>
+                <p class="feature-description">快速記錄想法和任務，避免分心。一鍵捕捉，智能處理。</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">⏰</span>
+                <h3 class="feature-title">視覺化計時器</h3>
+                <p class="feature-description">番茄工作法計時器，配合呼吸動畫，提升專注力。</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">🎮</span>
+                <h3 class="feature-title">遊戲化元素</h3>
+                <p class="feature-description">積分系統、成就解鎖、進度追蹤，讓生產力變有趣。</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">🧩</span>
+                <h3 class="feature-title">智能優先級</h3>
+                <p class="feature-description">三層優先級管理，根據能量狀態智能推薦任務。</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">📊</span>
+                <h3 class="feature-title">進度分析</h3>
+                <p class="feature-description">詳細的統計報表，追蹤習慣與效率改善。</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">🤝</span>
+                <h3 class="feature-title">社群支援</h3>
+                <p class="feature-description">Body Doubling 功能，與他人一起專注工作。</p>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #374151;">
+                🚀 立即體驗系統
+            </h2>
+            
+            <div class="demo-login">
+                <div class="login-form">
+                    <h3 style="margin-bottom: 1rem; color: #374151;">登入系統</h3>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="email">電子郵件</label>
+                            <input type="email" id="email" name="email" value="demo@adhd.dev">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">密碼</label>
+                            <input type="password" id="password" name="password" value="demo123">
+                        </div>
+                        <button type="submit" class="btn-primary">登入系統</button>
+                    </form>
+                </div>
+
+                <div class="demo-accounts">
+                    <h4>🔑 測試帳號</h4>
+                    <div class="account-item">📧 demo@adhd.dev / demo123</div>
+                    <div class="account-item">📧 test@adhd.dev / test123</div>
+                    <div class="account-item">📧 admin@adhd.dev / admin123</div>
+                    
+                    <h4 style="margin-top: 1rem;">🎯 ADHD 類型</h4>
+                    <div class="account-item">Demo: Combined (混合型)</div>
+                    <div class="account-item">Test: Inattentive (注意力不足型)</div>
+                    <div class="account-item">Admin: Combined (混合型)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #374151;">
+                🔗 系統服務
+            </h2>
+            
+            <div class="services-grid">
+                <a href="http://localhost:5001" class="service-link" target="_blank">
+                    <span class="service-icon">🏗️</span>
+                    <div class="service-name">完整後端 API</div>
+                    <div class="service-description">.NET Core API + Swagger</div>
+                </a>
+
+                <a href="http://localhost:5050" class="service-link" target="_blank">
+                    <span class="service-icon">🗄️</span>
+                    <div class="service-name">資料庫管理</div>
+                    <div class="service-description">pgAdmin 管理介面</div>
+                </a>
+
+                <a href="http://localhost:8080" class="service-link" target="_blank">
+                    <span class="service-icon">🌐</span>
+                    <div class="service-name">完整系統入口</div>
+                    <div class="service-description">Nginx 反向代理整合</div>
+                </a>
+
+                <a href="http://localhost:8081" class="service-link" target="_blank">
+                    <span class="service-icon">🔄</span>
+                    <div class="service-name">Redis 管理</div>
+                    <div class="service-description">Redis Commander (admin/admin123)</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // 模擬登入過程
+            const button = document.querySelector('.btn-primary');
+            button.textContent = '登入中...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                alert(`歡迎 ${email}！系統已準備就緒。\n\n您可以開始使用 ADHD 生產力管理功能。`);
+                button.textContent = '登入系統';
+                button.disabled = false;
+            }, 1500);
+        });
+
+        // 添加快速填入功能
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === '1') {
+                document.getElementById('email').value = 'demo@adhd.dev';
+                document.getElementById('password').value = 'demo123';
+            }
+            if (e.ctrlKey && e.key === '2') {
+                document.getElementById('email').value = 'test@adhd.dev';
+                document.getElementById('password').value = 'test123';
+            }
+            if (e.ctrlKey && e.key === '3') {
+                document.getElementById('email').value = 'admin@adhd.dev';
+                document.getElementById('password').value = 'admin123';
+            }
+        });
+    </script>
+</body>
+</html>

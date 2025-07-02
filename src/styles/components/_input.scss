@@ -1,0 +1,450 @@
+// Input Component Styles
+// ADHD-optimized form inputs with clear visual feedback
+
+@import '../tokens';
+
+// Base input styling
+.input {
+  display: block;
+  width: 100%;
+  padding: $spacing-input-padding-y $spacing-input-padding-x;
+  border: $border-default;
+  border-radius: $border-radius-input;
+  font-family: $font-family-primary;
+  font-size: $ui-input-size;
+  font-weight: $ui-input-weight;
+  line-height: $ui-input-line-height;
+  color: $color-text-primary;
+  background-color: $color-base-surface;
+  transition: all $transition-duration-fast $transition-timing-ease-out;
+  
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-focus;
+    box-shadow: $shadow-inner-focus;
+  }
+  
+  &:disabled {
+    background-color: $color-gray-100;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &.input-error {
+    border-color: $color-error;
+    
+    &:focus {
+      border-color: $color-error;
+      box-shadow: $shadow-inner, $shadow-focus-error;
+    }
+  }
+  
+  &.input-success {
+    border-color: $color-success;
+    
+    &:focus {
+      border-color: $color-success;
+      box-shadow: $shadow-inner, $shadow-focus-success;
+    }
+  }
+}
+
+// Input sizes
+.input-sm {
+  padding: $spacing-1 $spacing-2;
+  font-size: $font-size-sm;
+}
+
+.input-lg {
+  padding: $spacing-3 $spacing-4;
+  font-size: $font-size-lg;
+}
+
+// Textarea specific styling
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: $font-family-primary;
+}
+
+// Input group for labels and help text
+.input-group {
+  margin-bottom: $spacing-form-group-gap;
+  
+  .input-label {
+    display: block;
+    margin-bottom: $spacing-1;
+    font-size: $ui-label-size;
+    font-weight: $ui-label-weight;
+    line-height: $ui-label-line-height;
+    color: $color-text-primary;
+    
+    &.label-required::after {
+      content: ' *';
+      color: $color-error;
+    }
+  }
+  
+  .input-help {
+    margin-top: $spacing-1;
+    font-size: $ui-caption-size;
+    font-weight: $ui-caption-weight;
+    line-height: $ui-caption-line-height;
+    color: $color-text-secondary;
+  }
+  
+  .input-error-text {
+    margin-top: $spacing-1;
+    font-size: $ui-caption-size;
+    color: $color-error;
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
+  }
+  
+  .input-success-text {
+    margin-top: $spacing-1;
+    font-size: $ui-caption-size;
+    color: $color-success;
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
+  }
+}
+
+// Input with icon
+.input-with-icon {
+  position: relative;
+  
+  .input-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $color-text-tertiary;
+    pointer-events: none;
+    
+    &.icon-left {
+      left: $spacing-3;
+    }
+    
+    &.icon-right {
+      right: $spacing-3;
+    }
+  }
+  
+  .input {
+    &.has-icon-left {
+      padding-left: $spacing-8;
+    }
+    
+    &.has-icon-right {
+      padding-right: $spacing-8;
+    }
+  }
+}
+
+// Select styling
+.select {
+  @extend .input;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right $spacing-2 center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  padding-right: $spacing-8;
+  
+  &:focus {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236366f1' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  }
+}
+
+// Checkbox styling
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-2;
+  margin-bottom: $spacing-form-group-gap;
+  
+  .checkbox {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: $border-default;
+    border-radius: $border-radius-sm;
+    background-color: $color-base-surface;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    margin-top: 2px; // Align with first line of text
+    
+    &:checked {
+      background-color: $color-brand-primary;
+      border-color: $color-brand-primary;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 6px;
+        width: 6px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: $shadow-focus;
+    }
+    
+    &:disabled {
+      background-color: $color-gray-100;
+      border-color: $color-gray-300;
+      cursor: not-allowed;
+    }
+  }
+  
+  .checkbox-label {
+    font-size: $body-base-size;
+    color: $color-text-primary;
+    cursor: pointer;
+    line-height: $line-height-normal;
+  }
+}
+
+// Radio button styling
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  margin-bottom: $spacing-form-group-gap;
+  
+  .radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-2;
+    
+    .radio {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: $border-default;
+      border-radius: 50%;
+      background-color: $color-base-surface;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      margin-top: 2px;
+      
+      &:checked {
+        border-color: $color-brand-primary;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          top: 4px;
+          left: 4px;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background-color: $color-brand-primary;
+        }
+      }
+      
+      &:focus {
+        outline: none;
+        box-shadow: $shadow-focus;
+      }
+      
+      &:disabled {
+        background-color: $color-gray-100;
+        border-color: $color-gray-300;
+        cursor: not-allowed;
+      }
+    }
+    
+    .radio-label {
+      font-size: $body-base-size;
+      color: $color-text-primary;
+      cursor: pointer;
+      line-height: $line-height-normal;
+    }
+  }
+}
+
+// Search input with clear button
+.search-input {
+  position: relative;
+  
+  .input {
+    padding-left: $spacing-8;
+    padding-right: $spacing-8;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: $spacing-3;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $color-text-tertiary;
+    pointer-events: none;
+  }
+  
+  .clear-button {
+    position: absolute;
+    right: $spacing-2;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: $color-text-tertiary;
+    cursor: pointer;
+    padding: $spacing-1;
+    border-radius: $border-radius-sm;
+    
+    &:hover {
+      color: $color-text-primary;
+      background-color: $color-gray-100;
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: $shadow-focus;
+    }
+  }
+}
+
+// Number input with steppers
+.number-input {
+  position: relative;
+  
+  .input {
+    text-align: center;
+    padding-right: $spacing-8;
+  }
+  
+  .number-steppers {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    bottom: 2px;
+    display: flex;
+    flex-direction: column;
+    
+    .stepper-button {
+      flex: 1;
+      background: $color-gray-100;
+      border: none;
+      color: $color-text-secondary;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      
+      &:first-child {
+        border-radius: 0 $border-radius-sm 0 0;
+        border-bottom: 1px solid $color-gray-200;
+      }
+      
+      &:last-child {
+        border-radius: 0 0 $border-radius-sm 0;
+      }
+      
+      &:hover {
+        background: $color-gray-200;
+        color: $color-text-primary;
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// ADHD-specific input enhancements
+.input-adhd-enhanced {
+  position: relative;
+  
+  // Visual focus indicator
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, transparent, $color-brand-primary, transparent);
+    opacity: 0;
+    transition: opacity $transition-duration-fast $transition-timing-ease-out;
+    z-index: -1;
+  }
+  
+  &:focus-within::before {
+    opacity: 0.3;
+  }
+  
+  // Priority color coding
+  &.priority-high {
+    border-left: 4px solid $color-priority-high;
+  }
+  
+  &.priority-medium {
+    border-left: 4px solid $color-priority-medium;
+  }
+  
+  &.priority-low {
+    border-left: 4px solid $color-priority-low;
+  }
+}
+
+// Form section styling
+.form-section {
+  margin-bottom: $spacing-form-section-gap;
+  
+  .section-title {
+    font-size: $heading-h4-size;
+    font-weight: $heading-h4-weight;
+    color: $color-text-primary;
+    margin-bottom: $spacing-4;
+    padding-bottom: $spacing-2;
+    border-bottom: $border-divider;
+  }
+  
+  .section-description {
+    font-size: $body-small-size;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-4;
+  }
+}
+
+// Mobile optimizations
+@include mobile-only {
+  .input,
+  .select,
+  .textarea {
+    font-size: 16px; // Prevent zoom on iOS
+  }
+  
+  .input-group {
+    margin-bottom: $spacing-4;
+  }
+  
+  .checkbox-group,
+  .radio-group {
+    .checkbox-label,
+    .radio-label {
+      font-size: $body-large-size;
+    }
+  }
+}

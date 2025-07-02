@@ -1,0 +1,135 @@
+// ADHD-Optimized Responsive Breakpoints
+// Designed for various device usage patterns
+
+// Breakpoint values
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-2xl: 1400px;
+
+// Container max widths
+$container-xs: 100%;
+$container-sm: 540px;
+$container-md: 720px;
+$container-lg: 960px;
+$container-xl: 1140px;
+$container-2xl: 1320px;
+
+// Media query mixins
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == xs {
+    @media (min-width: #{$breakpoint-xs}) {
+      @content;
+    }
+  }
+  @if $breakpoint == sm {
+    @media (min-width: #{$breakpoint-sm}) {
+      @content;
+    }
+  }
+  @if $breakpoint == md {
+    @media (min-width: #{$breakpoint-md}) {
+      @content;
+    }
+  }
+  @if $breakpoint == lg {
+    @media (min-width: #{$breakpoint-lg}) {
+      @content;
+    }
+  }
+  @if $breakpoint == xl {
+    @media (min-width: #{$breakpoint-xl}) {
+      @content;
+    }
+  }
+  @if $breakpoint == 2xl {
+    @media (min-width: #{$breakpoint-2xl}) {
+      @content;
+    }
+  }
+}
+
+// Max-width media query mixins (mobile-first approach)
+@mixin respond-below($breakpoint) {
+  @if $breakpoint == sm {
+    @media (max-width: #{$breakpoint-sm - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == md {
+    @media (max-width: #{$breakpoint-md - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == lg {
+    @media (max-width: #{$breakpoint-lg - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == xl {
+    @media (max-width: #{$breakpoint-xl - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == 2xl {
+    @media (max-width: #{$breakpoint-2xl - 1px}) {
+      @content;
+    }
+  }
+}
+
+// Between breakpoints
+@mixin respond-between($min, $max) {
+  @media (min-width: #{$min}) and (max-width: #{$max - 1px}) {
+    @content;
+  }
+}
+
+// Device-specific queries for ADHD optimization
+@mixin mobile-only {
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet-only {
+  @media (min-width: #{$breakpoint-md}) and (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop-only {
+  @media (min-width: #{$breakpoint-lg}) {
+    @content;
+  }
+}
+
+// Touch device optimization
+@mixin touch-device {
+  @media (hover: none) and (pointer: coarse) {
+    @content;
+  }
+}
+
+// Reduced motion for accessibility
+@mixin prefers-reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+// Dark mode preference
+@mixin prefers-dark {
+  @media (prefers-color-scheme: dark) {
+    @content;
+  }
+}
+
+// High contrast preference
+@mixin prefers-high-contrast {
+  @media (prefers-contrast: high) {
+    @content;
+  }
+}

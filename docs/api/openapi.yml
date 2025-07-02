@@ -1,0 +1,1151 @@
+openapi: 3.0.3
+info:
+  title: ADHD Productivity System API
+  description: |
+    A comprehensive API for managing tasks, focus sessions, and productivity metrics specifically designed for individuals with ADHD.
+    
+    ## Key Features
+    - **ADHD-Centered Design**: All endpoints are optimized for users with ADHD
+    - **Focus Session Management**: Pomodoro-style focus sessions with ADHD-friendly customizations
+    - **Task Decomposition**: Smart task breaking for executive function support
+    - **Real-time Updates**: WebSocket support for live session synchronization
+    - **Analytics & Insights**: Productivity tracking with ADHD-specific metrics
+    
+    ## Authentication
+    This API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
+    `Authorization: Bearer <your-jwt-token>`
+    
+    ## Rate Limiting
+    - Standard endpoints: 100 requests/minute per user
+    - Authentication endpoints: 5 requests/minute per IP
+    - File uploads: 10 requests/minute per user
+    
+    ## ADHD-Specific Considerations
+    - All response times are optimized for attention management
+    - Error messages are clear and actionable
+    - Minimal cognitive load in API design
+    - Support for executive function assistance
+  version: 1.0.0
+  contact:
+    name: ADHD Productivity System Team
+    email: api-support@adhd-productivity.dev
+    url: https://docs.adhd-productivity.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.adhd-productivity.dev/v1
+    description: Production server
+  - url: https://staging-api.adhd-productivity.dev/v1
+    description: Staging server
+  - url: http://localhost:5000/v1
+    description: Development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: |
+        Create a new user account with ADHD-specific profile options.
+        
+        **ADHD Considerations:**
+        - Optional ADHD type classification for personalized experience
+        - Cognitive load preferences for UI/UX customization
+        - Timezone support for time management features
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+            examples:
+              basic_registration:
+                summary: Basic user registration
+                value:
+                  email: "user@example.com"
+                  password: "SecurePass123!"
+                  firstName: "Jane"
+                  lastName: "Doe"
+                  timezone: "America/New_York"
+              adhd_specific:
+                summary: Registration with ADHD profile
+                value:
+                  email: "adhd.user@example.com"
+                  password: "SecurePass123!"
+                  firstName: "Alex"
+                  lastName: "Smith"
+                  timezone: "Europe/London"
+                  adhdType: "Combined"
+                  theme: "Dark"
+                  cognitiveLoadPreference: "Low"
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive access token
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Task Management Endpoints
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: Get user tasks
+      description: |
+        Retrieve tasks with ADHD-friendly filtering and sorting options.
+        
+        **ADHD Features:**
+        - Priority-based sorting for executive function support
+        - Energy-level filtering for task matching
+        - Estimated duration for time-blocking
+        - Context switching indicators
+      operationId: getTasks
+      parameters:
+        - name: status
+          in: query
+          description: Filter by task status
+          schema:
+            type: string
+            enum: [todo, in_progress, completed, cancelled]
+        - name: priority
+          in: query
+          description: Filter by priority level
+          schema:
+            type: string
+            enum: [low, medium, high, urgent]
+        - name: energyLevel
+          in: query
+          description: Filter by required energy level
+          schema:
+            type: string
+            enum: [low, medium, high]
+        - name: estimatedDuration
+          in: query
+          description: Filter by estimated duration (minutes)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 480
+        - name: dueDate
+          in: query
+          description: Filter by due date (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated)
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Tasks
+      summary: Create a new task
+      description: |
+        Create a new task with ADHD-specific features:
+        - Automatic task decomposition suggestions
+        - Energy level assessment
+        - Context switching warnings
+        - Dopamine reward integration
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+            examples:
+              simple_task:
+                summary: Simple task creation
+                value:
+                  title: "Write project proposal"
+                  description: "Draft the Q1 project proposal for management review"
+                  priority: "high"
+                  estimatedDuration: 60
+                  dueDate: "2024-12-25T10:00:00Z"
+              adhd_optimized:
+                summary: ADHD-optimized task
+                value:
+                  title: "Research market trends"
+                  description: "Gather data on current market trends for the proposal"
+                  priority: "medium"
+                  estimatedDuration: 30
+                  energyLevel: "medium"
+                  tags: ["research", "quick-win"]
+                  contextSwitchWarning: true
+                  rewardType: "completion_badge"
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Invalid task data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tasks/{taskId}:
+    get:
+      tags:
+        - Tasks
+      summary: Get specific task
+      description: Retrieve detailed information about a specific task
+      operationId: getTask
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: Task unique identifier
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Tasks
+      summary: Update task
+      description: Update an existing task with validation for ADHD-specific features
+      operationId: updateTask
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: Task unique identifier
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Invalid update data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Tasks
+      summary: Delete task
+      description: Delete a task (with confirmation for ADHD users to prevent accidental deletion)
+      operationId: deleteTask
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: Task unique identifier
+          schema:
+            type: string
+            format: uuid
+        - name: confirm
+          in: query
+          description: Confirmation flag (required for ADHD safety)
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '204':
+          description: Task deleted successfully
+        '400':
+          description: Missing confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Focus Session Endpoints
+  /focus-sessions:
+    get:
+      tags:
+        - Focus Sessions
+      summary: Get focus sessions
+      description: |
+        Retrieve focus sessions with ADHD-specific analytics:
+        - Attention span patterns
+        - Interruption tracking
+        - Optimal session timing recommendations
+      operationId: getFocusSessions
+      parameters:
+        - name: dateFrom
+          in: query
+          description: Start date for session history
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          description: End date for session history
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Filter by session status
+          schema:
+            type: string
+            enum: [active, completed, interrupted, paused]
+      responses:
+        '200':
+          description: Focus sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FocusSessionListResponse'
+
+    post:
+      tags:
+        - Focus Sessions
+      summary: Start focus session
+      description: |
+        Start a new focus session with ADHD-optimized features:
+        - Customizable session durations
+        - Interruption handling
+        - Break reminders
+        - Background noise options
+      operationId: startFocusSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FocusSessionStart'
+      responses:
+        '201':
+          description: Focus session started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FocusSessionResponse'
+        '400':
+          description: Invalid session data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Analytics Endpoints
+  /analytics/dashboard:
+    get:
+      tags:
+        - Analytics
+      summary: Get dashboard analytics
+      description: |
+        Retrieve ADHD-specific dashboard metrics:
+        - Focus time trends
+        - Task completion patterns
+        - Energy level correlations
+        - Dopamine reward tracking
+      operationId: getDashboardAnalytics
+      parameters:
+        - name: period
+          in: query
+          description: Time period for analytics
+          schema:
+            type: string
+            enum: [day, week, month, quarter, year]
+            default: week
+      responses:
+        '200':
+          description: Dashboard analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardAnalytics'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication Schemas
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Strong password with mixed characters
+          example: "SecurePass123!"
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: User's first name
+          example: "Jane"
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: User's last name
+          example: "Doe"
+        timezone:
+          type: string
+          description: User's timezone (IANA format)
+          example: "America/New_York"
+        adhdType:
+          type: string
+          enum: [Inattentive, Hyperactive, Combined, NotSpecified]
+          description: ADHD type for personalization
+          example: "Combined"
+        theme:
+          type: string
+          enum: [Light, Dark, Auto, HighContrast]
+          description: UI theme preference
+          example: "Dark"
+        cognitiveLoadPreference:
+          type: string
+          enum: [Low, Medium, High]
+          description: Preferred cognitive load level
+          example: "Low"
+
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          example: "SecurePass123!"
+        rememberMe:
+          type: boolean
+          default: false
+          description: Extended session duration
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            token:
+              type: string
+              description: JWT access token
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            refreshToken:
+              type: string
+              description: Refresh token for renewing access
+              example: "def50200..."
+            expiresIn:
+              type: integer
+              description: Token expiration time in seconds
+              example: 3600
+        message:
+          type: string
+          example: "Authentication successful"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+
+    # User Schema
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        firstName:
+          type: string
+          example: "Jane"
+        lastName:
+          type: string
+          example: "Doe"
+        timezone:
+          type: string
+          example: "America/New_York"
+        adhdType:
+          type: string
+          enum: [Inattentive, Hyperactive, Combined, NotSpecified]
+          example: "Combined"
+        theme:
+          type: string
+          enum: [Light, Dark, Auto, HighContrast]
+          example: "Dark"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+        lastLoginAt:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+
+    # Task Schemas
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Task title
+          example: "Write project proposal"
+        description:
+          type: string
+          maxLength: 2000
+          description: Detailed task description
+          example: "Draft the Q1 project proposal for management review"
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          default: medium
+          description: Task priority level
+          example: "high"
+        estimatedDuration:
+          type: integer
+          minimum: 1
+          maximum: 480
+          description: Estimated duration in minutes
+          example: 60
+        energyLevel:
+          type: string
+          enum: [low, medium, high]
+          description: Required energy level
+          example: "medium"
+        dueDate:
+          type: string
+          format: date-time
+          description: Task due date
+          example: "2024-12-25T10:00:00Z"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Task tags for organization
+          example: ["work", "proposal", "urgent"]
+        contextSwitchWarning:
+          type: boolean
+          default: false
+          description: Show context switch warning
+          example: true
+        rewardType:
+          type: string
+          enum: [none, points, badge, celebration]
+          description: Dopamine reward type
+          example: "badge"
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        status:
+          type: string
+          enum: [todo, in_progress, completed, cancelled]
+        estimatedDuration:
+          type: integer
+          minimum: 1
+          maximum: 480
+        actualDuration:
+          type: integer
+          minimum: 0
+        energyLevel:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+          maxLength: 1000
+          description: Additional notes or comments
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        title:
+          type: string
+          example: "Write project proposal"
+        description:
+          type: string
+          example: "Draft the Q1 project proposal for management review"
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          example: "high"
+        status:
+          type: string
+          enum: [todo, in_progress, completed, cancelled]
+          example: "todo"
+        estimatedDuration:
+          type: integer
+          example: 60
+        actualDuration:
+          type: integer
+          nullable: true
+          example: null
+        energyLevel:
+          type: string
+          enum: [low, medium, high]
+          example: "medium"
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-12-25T10:00:00Z"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["work", "proposal", "urgent"]
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        focusSessionsCount:
+          type: integer
+          description: Number of focus sessions completed for this task
+          example: 3
+        rewardEarned:
+          type: boolean
+          description: Whether dopamine reward was earned
+          example: false
+
+    TaskResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Task'
+        message:
+          type: string
+          example: "Task retrieved successfully"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+
+    TaskListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            tasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/Task'
+            pagination:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 20
+                total:
+                  type: integer
+                  example: 45
+                totalPages:
+                  type: integer
+                  example: 3
+        message:
+          type: string
+          example: "Tasks retrieved successfully"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+
+    # Focus Session Schemas
+    FocusSessionStart:
+      type: object
+      required:
+        - duration
+      properties:
+        taskId:
+          type: string
+          format: uuid
+          description: Associated task ID
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        duration:
+          type: integer
+          minimum: 5
+          maximum: 60
+          description: Session duration in minutes
+          example: 25
+        breakDuration:
+          type: integer
+          minimum: 1
+          maximum: 30
+          description: Break duration in minutes
+          example: 5
+        sessionType:
+          type: string
+          enum: [focus, short_break, long_break]
+          default: focus
+          example: "focus"
+        backgroundSound:
+          type: string
+          enum: [none, white_noise, nature, rain, cafe]
+          description: Background sound preference
+          example: "white_noise"
+        interruptionMode:
+          type: string
+          enum: [strict, gentle, flexible]
+          description: How to handle interruptions
+          example: "gentle"
+
+    FocusSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        taskId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        duration:
+          type: integer
+          example: 25
+        breakDuration:
+          type: integer
+          example: 5
+        sessionType:
+          type: string
+          enum: [focus, short_break, long_break]
+          example: "focus"
+        status:
+          type: string
+          enum: [active, completed, interrupted, paused]
+          example: "active"
+        startedAt:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        pausedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        interruptionCount:
+          type: integer
+          description: Number of times session was interrupted
+          example: 0
+        actualDuration:
+          type: integer
+          nullable: true
+          description: Actual session duration in minutes
+          example: null
+        backgroundSound:
+          type: string
+          enum: [none, white_noise, nature, rain, cafe]
+          example: "white_noise"
+        focusScore:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          nullable: true
+          description: AI-calculated focus quality score
+          example: null
+
+    FocusSessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/FocusSession'
+        message:
+          type: string
+          example: "Focus session started successfully"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+
+    FocusSessionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            sessions:
+              type: array
+              items:
+                $ref: '#/components/schemas/FocusSession'
+            stats:
+              type: object
+              properties:
+                totalSessions:
+                  type: integer
+                  example: 15
+                totalFocusTime:
+                  type: integer
+                  description: Total focus time in minutes
+                  example: 375
+                averageFocusScore:
+                  type: number
+                  format: float
+                  example: 7.5
+                completionRate:
+                  type: number
+                  format: float
+                  description: Percentage of completed sessions
+                  example: 80.0
+        message:
+          type: string
+          example: "Focus sessions retrieved successfully"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+
+    # Analytics Schemas
+    DashboardAnalytics:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            productivity:
+              type: object
+              properties:
+                tasksCompleted:
+                  type: integer
+                  example: 12
+                focusSessionsCompleted:
+                  type: integer
+                  example: 18
+                totalFocusTime:
+                  type: integer
+                  description: Total focus time in minutes
+                  example: 450
+                productivityScore:
+                  type: number
+                  format: float
+                  description: Overall productivity score (0-10)
+                  example: 7.8
+            trends:
+              type: object
+              properties:
+                dailyFocusTime:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      minutes:
+                        type: integer
+                  example:
+                    - date: "2024-12-22"
+                      minutes: 75
+                    - date: "2024-12-21"
+                      minutes: 60
+                taskCompletion:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      completed:
+                        type: integer
+                      total:
+                        type: integer
+            insights:
+              type: object
+              properties:
+                bestFocusTime:
+                  type: string
+                  description: Time of day when focus is highest
+                  example: "10:00 AM"
+                optimalSessionDuration:
+                  type: integer
+                  description: Recommended session duration in minutes
+                  example: 22
+                energyPatterns:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      hour:
+                        type: integer
+                      energyLevel:
+                        type: string
+                        enum: [low, medium, high]
+                adhdSpecificMetrics:
+                  type: object
+                  properties:
+                    attentionSpanTrend:
+                      type: string
+                      enum: [improving, stable, declining]
+                      example: "improving"
+                    interruptionFrequency:
+                      type: number
+                      format: float
+                      description: Average interruptions per session
+                      example: 1.2
+                    rewardEffectiveness:
+                      type: number
+                      format: float
+                      description: How effective dopamine rewards are (0-10)
+                      example: 8.5
+        message:
+          type: string
+          example: "Dashboard analytics retrieved successfully"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+
+    # Error Response Schema
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: object
+          nullable: true
+          example: null
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid input data"
+        error:
+          type: string
+          description: Technical error details
+          example: "Validation failed for field 'email'"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-12-22T10:00:00Z"
+        validationErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "email"
+              message:
+                type: string
+                example: "Must be a valid email address"
+              code:
+                type: string
+                example: "INVALID_FORMAT"
+        errorCode:
+          type: string
+          description: Application-specific error code
+          example: "VALIDATION_ERROR"
+        requestId:
+          type: string
+          description: Request tracking ID for support
+          example: "req_123456789"
+
+tags:
+  - name: Authentication
+    description: User authentication and account management
+  - name: Tasks
+    description: ADHD-optimized task management with executive function support
+  - name: Focus Sessions
+    description: Pomodoro-style focus sessions with ADHD customizations
+  - name: Analytics
+    description: Productivity insights and ADHD-specific metrics
+
+externalDocs:
+  description: Complete API Documentation
+  url: https://docs.adhd-productivity.dev

@@ -1,0 +1,136 @@
+// Modal Component Styles
+// ADHD-optimized modal with clear focus management
+
+@import '../tokens';
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-index-modal;
+  padding: $spacing-4;
+  
+  &.modal-entering {
+    animation: modalFadeIn $transition-duration-normal $transition-timing-ease-out;
+  }
+  
+  &.modal-exiting {
+    animation: modalFadeOut $transition-duration-normal $transition-timing-ease-out;
+  }
+}
+
+.modal {
+  background: $color-base-surface;
+  border-radius: $border-radius-modal;
+  box-shadow: $shadow-modal;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  
+  &.modal-sm { max-width: 400px; }
+  &.modal-md { max-width: 600px; }
+  &.modal-lg { max-width: 800px; }
+  &.modal-xl { max-width: 1200px; }
+  
+  &.modal-entering {
+    animation: modalSlideIn $transition-duration-normal $transition-timing-ease-out;
+  }
+  
+  &.modal-exiting {
+    animation: modalSlideOut $transition-duration-normal $transition-timing-ease-out;
+  }
+}
+
+.modal-header {
+  padding: $spacing-6;
+  border-bottom: $border-divider;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  .modal-title {
+    font-size: $heading-h3-size;
+    font-weight: $heading-h3-weight;
+    color: $color-text-primary;
+    margin: 0;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    color: $color-text-tertiary;
+    cursor: pointer;
+    padding: $spacing-2;
+    border-radius: $border-radius-base;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    
+    &:hover {
+      background-color: $color-gray-100;
+      color: $color-text-primary;
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: $shadow-focus;
+    }
+  }
+}
+
+.modal-body {
+  padding: $spacing-6;
+  overflow-y: auto;
+  max-height: calc(90vh - 200px);
+}
+
+.modal-footer {
+  padding: $spacing-6;
+  border-top: $border-divider;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-3;
+  
+  @include mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+}

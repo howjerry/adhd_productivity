@@ -1,0 +1,399 @@
+// Priority Matrix Component Styles
+// ADHD-optimized Eisenhower matrix with clear visual quadrants
+
+@import '../tokens';
+
+.priority-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-4;
+  padding: $spacing-6;
+  background: $color-base-background;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-card;
+  
+  @include mobile-only {
+    grid-template-columns: 1fr;
+    gap: $spacing-3;
+    padding: $spacing-4;
+  }
+}
+
+// Matrix quadrants
+.matrix-quadrant {
+  background: $color-base-surface;
+  border-radius: $border-radius-lg;
+  padding: $spacing-4;
+  min-height: 300px;
+  border: 2px solid transparent;
+  transition: all $transition-duration-normal $transition-timing-ease-out;
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-card-hover;
+  }
+  
+  // Quadrant-specific styling
+  &.quadrant-urgent-important {
+    border-color: $color-priority-high;
+    background: linear-gradient(135deg, $color-priority-high-light 0%, $color-base-surface 50%);
+    
+    .quadrant-header {
+      color: $color-priority-high-dark;
+    }
+  }
+  
+  &.quadrant-not-urgent-important {
+    border-color: $color-priority-medium;
+    background: linear-gradient(135deg, $color-priority-medium-light 0%, $color-base-surface 50%);
+    
+    .quadrant-header {
+      color: $color-priority-medium-dark;
+    }
+  }
+  
+  &.quadrant-urgent-not-important {
+    border-color: $color-warning;
+    background: linear-gradient(135deg, $color-warning-light 0%, $color-base-surface 50%);
+    
+    .quadrant-header {
+      color: $color-warning-dark;
+    }
+  }
+  
+  &.quadrant-not-urgent-not-important {
+    border-color: $color-priority-low;
+    background: linear-gradient(135deg, $color-priority-low-light 0%, $color-base-surface 50%);
+    
+    .quadrant-header {
+      color: $color-priority-low-dark;
+    }
+  }
+  
+  // Drag and drop states
+  &.drag-over {
+    border-style: dashed;
+    background: rgba(99, 102, 241, 0.1);
+    transform: scale(1.02);
+  }
+  
+  &.drag-active {
+    opacity: 0.8;
+  }
+}
+
+// Quadrant header
+.quadrant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-4;
+  padding-bottom: $spacing-2;
+  border-bottom: $border-divider;
+  
+  .quadrant-title {
+    font-size: $heading-h4-size;
+    font-weight: $heading-h4-weight;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+  
+  .quadrant-count {
+    background: rgba(255, 255, 255, 0.8);
+    color: $color-text-secondary;
+    padding: $spacing-1 $spacing-2;
+    border-radius: $border-radius-full;
+    font-size: $body-xs-size;
+    font-weight: $font-weight-medium;
+    min-width: 24px;
+    text-align: center;
+  }
+  
+  .quadrant-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
+    opacity: 0;
+    transition: opacity $transition-duration-fast $transition-timing-ease-out;
+  }
+  
+  .matrix-quadrant:hover & .quadrant-actions {
+    opacity: 1;
+  }
+}
+
+// Task list within quadrants
+.quadrant-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  height: calc(100% - 60px);
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
+}
+
+// Matrix task card - simplified version for matrix view
+.matrix-task-card {
+  background: $color-base-surface;
+  border: $border-light;
+  border-radius: $border-radius-base;
+  padding: $spacing-3;
+  cursor: grab;
+  transition: all $transition-duration-fast $transition-timing-ease-out;
+  box-shadow: $shadow-xs;
+  
+  &:hover {
+    box-shadow: $shadow-sm;
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+  }
+  
+  // Dragging state
+  &.task-dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    z-index: $z-index-modal;
+  }
+  
+  .task-title {
+    font-size: $body-base-size;
+    font-weight: $font-weight-medium;
+    margin: 0 0 $spacing-1 0;
+    color: $color-text-primary;
+    line-height: $line-height-normal;
+    
+    // Truncate long titles
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .task-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: $body-xs-size;
+    color: $color-text-tertiary;
+    
+    .task-time {
+      display: flex;
+      align-items: center;
+      gap: $spacing-1;
+    }
+    
+    .task-energy {
+      display: flex;
+      align-items: center;
+      gap: $spacing-1;
+    }
+  }
+  
+  .task-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-1;
+    margin-top: $spacing-2;
+    
+    .task-tag {
+      background: $color-gray-100;
+      color: $color-text-secondary;
+      padding: 2px $spacing-1;
+      border-radius: $border-radius-sm;
+      font-size: 10px;
+      font-weight: $font-weight-medium;
+    }
+  }
+}
+
+// Empty state for quadrants
+.quadrant-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: $color-text-tertiary;
+  text-align: center;
+  border: 2px dashed $color-gray-300;
+  border-radius: $border-radius-base;
+  margin-top: $spacing-2;
+  
+  .empty-icon {
+    font-size: 2rem;
+    margin-bottom: $spacing-2;
+    opacity: 0.5;
+  }
+  
+  .empty-text {
+    font-size: $body-small-size;
+    font-weight: $font-weight-medium;
+  }
+  
+  .empty-hint {
+    font-size: $body-xs-size;
+    margin-top: $spacing-1;
+    opacity: 0.7;
+  }
+}
+
+// Matrix legend
+.matrix-legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-2;
+  margin-bottom: $spacing-4;
+  padding: $spacing-4;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: $border-radius-lg;
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    font-size: $body-small-size;
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: $border-radius-sm;
+      flex-shrink: 0;
+    }
+    
+    .legend-label {
+      font-weight: $font-weight-medium;
+      color: $color-text-primary;
+    }
+  }
+  
+  @include mobile-only {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Matrix controls
+.matrix-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-6;
+  
+  .matrix-title {
+    font-size: $heading-h2-size;
+    font-weight: $heading-h2-weight;
+    margin: 0;
+    color: $color-text-primary;
+  }
+  
+  .matrix-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+  
+  @include mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $spacing-3;
+    
+    .matrix-actions {
+      justify-content: center;
+    }
+  }
+}
+
+// Filter controls
+.matrix-filters {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin-bottom: $spacing-4;
+  
+  .filter-button {
+    padding: $spacing-1 $spacing-2;
+    border: $border-light;
+    border-radius: $border-radius-full;
+    background: $color-base-surface;
+    color: $color-text-secondary;
+    font-size: $body-xs-size;
+    cursor: pointer;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    
+    &:hover {
+      border-color: $color-brand-primary;
+      color: $color-brand-primary;
+    }
+    
+    &.filter-active {
+      background: $color-brand-primary;
+      border-color: $color-brand-primary;
+      color: white;
+    }
+  }
+  
+  @include mobile-only {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+// Compact matrix variant
+.priority-matrix-compact {
+  .matrix-quadrant {
+    min-height: 200px;
+    padding: $spacing-3;
+  }
+  
+  .quadrant-header .quadrant-title {
+    font-size: $body-large-size;
+  }
+  
+  .matrix-task-card {
+    padding: $spacing-2;
+    
+    .task-title {
+      font-size: $body-small-size;
+    }
+    
+    .task-meta {
+      font-size: 10px;
+    }
+  }
+}
+
+// Animation for task movement
+@keyframes taskMove {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.task-moving {
+  animation: taskMove 0.3s ease-in-out;
+}

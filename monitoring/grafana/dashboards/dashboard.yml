@@ -1,0 +1,14 @@
+# ADHD 生產力系統 - Grafana 儀表板配置
+
+apiVersion: 1
+
+providers:
+  - name: 'ADHD Dashboard Provider'
+    orgId: 1
+    folder: 'ADHD Productivity System'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

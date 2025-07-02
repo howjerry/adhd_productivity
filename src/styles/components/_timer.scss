@@ -1,0 +1,390 @@
+// Visual Timer Component Styles
+// ADHD-optimized timer with clear visual progress and calming animations
+
+@import '../tokens';
+
+.visual-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-6;
+  padding: $spacing-8;
+  background: linear-gradient(135deg, $color-brand-primary-light 0%, $color-brand-secondary-light 100%);
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-card-elevated;
+  position: relative;
+  overflow: hidden;
+  
+  // Breathing animation for focus
+  &.timer-running {
+    animation: timerBreathe 4s ease-in-out infinite;
+  }
+  
+  // Pause state
+  &.timer-paused {
+    opacity: 0.8;
+    
+    .timer-circle {
+      animation-play-state: paused;
+    }
+  }
+  
+  // Break mode styling
+  &.timer-break {
+    background: linear-gradient(135deg, $color-success-light 0%, $color-info-light 100%);
+  }
+}
+
+// Main timer circle
+.timer-circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  // Background circle
+  &::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+  }
+  
+  // Progress ring
+  .progress-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    
+    circle {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      
+      &.progress-background {
+        stroke: rgba(255, 255, 255, 0.3);
+      }
+      
+      &.progress-foreground {
+        stroke: $color-brand-primary;
+        stroke-dasharray: 565.48; // 2 * π * 90
+        stroke-dashoffset: 565.48;
+        transition: stroke-dashoffset $transition-duration-slow linear;
+        
+        .timer-break & {
+          stroke: $color-success;
+        }
+      }
+    }
+  }
+  
+  // Timer display
+  .timer-display {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: $color-text-primary;
+    
+    .timer-time {
+      font-size: 2.5rem;
+      font-weight: $font-weight-bold;
+      line-height: 1;
+      font-family: $font-family-mono;
+      margin-bottom: $spacing-1;
+    }
+    
+    .timer-mode {
+      font-size: $body-small-size;
+      color: $color-text-secondary;
+      text-transform: uppercase;
+      letter-spacing: $letter-spacing-wide;
+      font-weight: $font-weight-medium;
+    }
+  }
+}
+
+// Timer controls
+.timer-controls {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  
+  .timer-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    font-size: 1.5rem;
+    
+    &:focus {
+      outline: none;
+      box-shadow: $shadow-focus;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .timer-play {
+    background: $color-success;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background: $color-success-dark;
+      transform: scale(1.1);
+    }
+  }
+  
+  .timer-pause {
+    background: $color-warning;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background: $color-warning-dark;
+      transform: scale(1.1);
+    }
+  }
+  
+  .timer-stop {
+    background: $color-error;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background: $color-error-dark;
+      transform: scale(1.1);
+    }
+  }
+  
+  .timer-skip {
+    background: $color-gray-500;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background: $color-gray-600;
+      transform: scale(1.1);
+    }
+  }
+}
+
+// Timer info section
+.timer-info {
+  text-align: center;
+  
+  .timer-session-count {
+    font-size: $body-large-size;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-2;
+  }
+  
+  .timer-task-name {
+    font-size: $body-base-size;
+    color: $color-text-secondary;
+    font-style: italic;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Mode indicators
+.timer-mode-indicators {
+  display: flex;
+  gap: $spacing-2;
+  margin-bottom: $spacing-4;
+  
+  .mode-indicator {
+    padding: $spacing-1 $spacing-3;
+    border-radius: $border-radius-full;
+    font-size: $body-xs-size;
+    font-weight: $font-weight-medium;
+    text-transform: uppercase;
+    letter-spacing: $letter-spacing-wide;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    
+    &.active {
+      background: $color-brand-primary;
+      color: white;
+    }
+    
+    &.inactive {
+      background: rgba(255, 255, 255, 0.3);
+      color: $color-text-secondary;
+    }
+  }
+}
+
+// Settings panel
+.timer-settings {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+  padding: $spacing-6;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: $border-radius-lg;
+  backdrop-filter: blur(10px);
+  
+  .setting-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .setting-label {
+      font-weight: $font-weight-medium;
+      color: $color-text-primary;
+    }
+    
+    .setting-input {
+      background: rgba(255, 255, 255, 0.9);
+      border: $border-light;
+      border-radius: $border-radius-base;
+      padding: $spacing-1 $spacing-2;
+      width: 80px;
+      text-align: center;
+      font-family: $font-family-mono;
+      
+      &:focus {
+        outline: none;
+        border-color: $color-brand-primary;
+        box-shadow: $shadow-focus;
+      }
+    }
+  }
+  
+  .setting-toggle {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+  }
+}
+
+// Compact timer variant
+.visual-timer-compact {
+  padding: $spacing-4;
+  flex-direction: row;
+  gap: $spacing-4;
+  
+  .timer-circle {
+    width: 80px;
+    height: 80px;
+    
+    .timer-display .timer-time {
+      font-size: 1.2rem;
+    }
+    
+    .timer-display .timer-mode {
+      font-size: 0.7rem;
+    }
+  }
+  
+  .timer-controls {
+    gap: $spacing-2;
+    
+    .timer-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+    }
+  }
+}
+
+// Breathing animation for focus enhancement
+@keyframes timerBreathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: $shadow-card-elevated;
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: $shadow-card-elevated, 0 0 30px rgba(99, 102, 241, 0.3);
+  }
+}
+
+// Completion celebration animation
+@keyframes timerComplete {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.timer-complete-animation {
+  animation: timerComplete 0.6s ease-in-out;
+}
+
+// Progress ring animation
+.progress-ring-animate {
+  animation: progressRingPulse 2s ease-in-out infinite;
+}
+
+@keyframes progressRingPulse {
+  0%, 100% {
+    stroke-width: 8;
+    opacity: 1;
+  }
+  50% {
+    stroke-width: 12;
+    opacity: 0.8;
+  }
+}
+
+// Mobile optimizations
+@include mobile-only {
+  .visual-timer {
+    padding: $spacing-6;
+    
+    .timer-circle {
+      width: 160px;
+      height: 160px;
+      
+      .timer-display .timer-time {
+        font-size: 2rem;
+      }
+    }
+    
+    .timer-controls {
+      gap: $spacing-3;
+      
+      .timer-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+      }
+    }
+  }
+  
+  .timer-settings {
+    .setting-group {
+      flex-direction: column;
+      align-items: stretch;
+      gap: $spacing-2;
+    }
+  }
+}

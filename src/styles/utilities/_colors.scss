@@ -1,0 +1,50 @@
+// Color Utility Classes
+
+@import '../tokens';
+
+// Text colors
+.text-primary { color: $color-text-primary; }
+.text-secondary { color: $color-text-secondary; }
+.text-tertiary { color: $color-text-tertiary; }
+.text-inverse { color: $color-text-inverse; }
+
+.text-brand { color: $color-brand-primary; }
+.text-success { color: $color-success; }
+.text-warning { color: $color-warning; }
+.text-error { color: $color-error; }
+.text-info { color: $color-info; }
+
+.text-gray-900 { color: $color-gray-900; }
+.text-gray-700 { color: $color-gray-700; }
+.text-gray-600 { color: $color-gray-600; }
+.text-gray-500 { color: $color-gray-500; }
+.text-gray-400 { color: $color-gray-400; }
+
+// Background colors
+.bg-white { background-color: $color-base-white; }
+.bg-gray-50 { background-color: $color-gray-50; }
+.bg-gray-100 { background-color: $color-gray-100; }
+.bg-gray-200 { background-color: $color-gray-200; }
+
+.bg-brand { background-color: $color-brand-primary; }
+.bg-brand-light { background-color: $color-brand-primary-light; }
+
+.bg-success { background-color: $color-success; }
+.bg-success-light { background-color: $color-success-light; }
+
+.bg-warning { background-color: $color-warning; }
+.bg-warning-light { background-color: $color-warning-light; }
+
+.bg-error { background-color: $color-error; }
+.bg-error-light { background-color: $color-error-light; }
+
+.bg-info { background-color: $color-info; }
+.bg-info-light { background-color: $color-info-light; }
+
+// Border colors
+.border-gray-200 { border-color: $color-gray-200; }
+.border-gray-300 { border-color: $color-gray-300; }
+.border-brand { border-color: $color-brand-primary; }
+.border-success { border-color: $color-success; }
+.border-warning { border-color: $color-warning; }
+.border-error { border-color: $color-error; }

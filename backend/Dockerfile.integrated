@@ -1,0 +1,113 @@
+# ADHD 生產力系統 - 後端 Docker 整合環境
+# ASP.NET Core 8.0 開發與生產環境
+
+# 建置階段
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# 複製專案檔案並還原套件
+COPY ["AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj", "AdhdProductivitySystem.Api/"]
+COPY ["AdhdProductivitySystem.Application/AdhdProductivitySystem.Application.csproj", "AdhdProductivitySystem.Application/"]
+COPY ["AdhdProductivitySystem.Domain/AdhdProductivitySystem.Domain.csproj", "AdhdProductivitySystem.Domain/"]
+COPY ["AdhdProductivitySystem.Infrastructure/AdhdProductivitySystem.Infrastructure.csproj", "AdhdProductivitySystem.Infrastructure/"]
+
+# 如果專案檔不存在，建立基本的專案結構
+RUN if [ ! -f "AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj" ]; then \
+    dotnet new webapi -n AdhdProductivitySystem.Api -o AdhdProductivitySystem.Api && \
+    dotnet new classlib -n AdhdProductivitySystem.Application -o AdhdProductivitySystem.Application && \
+    dotnet new classlib -n AdhdProductivitySystem.Domain -o AdhdProductivitySystem.Domain && \
+    dotnet new classlib -n AdhdProductivitySystem.Infrastructure -o AdhdProductivitySystem.Infrastructure; \
+fi
+
+# 新增必要的 NuGet 套件
+RUN cd AdhdProductivitySystem.Api && \
+    dotnet add package Microsoft.EntityFrameworkCore.Design && \
+    dotnet add package Microsoft.EntityFrameworkCore.Tools && \
+    dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL && \
+    dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer && \
+    dotnet add package Microsoft.AspNetCore.SignalR && \
+    dotnet add package StackExchange.Redis && \
+    dotnet add package MediatR && \
+    dotnet add package FluentValidation.AspNetCore && \
+    dotnet add package Serilog.AspNetCore && \
+    dotnet add package Serilog.Sinks.File && \
+    dotnet add package Serilog.Sinks.Console && \
+    dotnet add package Swashbuckle.AspNetCore && \
+    dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
+
+# 還原相依性
+RUN dotnet restore "AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj"
+
+# 複製所有原始碼
+COPY . .
+
+# 建置應用程式
+RUN dotnet build "AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj" -c Release -o /app/build
+
+# 發佈階段
+FROM build AS publish
+RUN dotnet publish "AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# 執行階段
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+
+# 安裝必要的系統套件
+RUN apt-get update && apt-get install -y \
+    curl \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# 建立應用程式目錄
+RUN mkdir -p /app/logs /app/uploads /app/config /app/temp && \
+    chmod 755 /app/logs /app/uploads /app/config /app/temp
+
+# 複製發佈的檔案
+COPY --from=publish /app/publish .
+
+# 建立基本的 appsettings.json 如果不存在
+RUN if [ ! -f "appsettings.json" ]; then \
+    echo '{ \
+        "Logging": { \
+            "LogLevel": { \
+                "Default": "Information", \
+                "Microsoft.AspNetCore": "Warning" \
+            } \
+        }, \
+        "AllowedHosts": "*", \
+        "ConnectionStrings": { \
+            "DefaultConnection": "Host=adhd-postgres;Database=ADHDadhd_productivity;Username=postgres;Password=S!@h@202203", \
+            "RedisConnection": "adhd-redis:6379" \
+        }, \
+        "JwtSettings": { \
+            "Secret": "ADHD_SuperSecret_Key_2024_ProductivitySystem_SecureToken", \
+            "Issuer": "ADHDProductivitySystem", \
+            "Audience": "ADHDUsers", \
+            "ExpiryMinutes": 60 \
+        } \
+    }' > appsettings.json; \
+fi
+
+# 建立健康檢查端點
+RUN echo '#!/bin/bash\ncurl -f http://localhost:5000/health || exit 1' > /app/healthcheck.sh && \
+    chmod +x /app/healthcheck.sh
+
+# 設定環境變數
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS=true
+
+# 暴露端口
+EXPOSE 5000
+
+# 設定使用者權限
+RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# 健康檢查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD /app/healthcheck.sh
+
+# 啟動命令
+ENTRYPOINT ["dotnet", "AdhdProductivitySystem.Api.dll"]

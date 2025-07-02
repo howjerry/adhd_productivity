@@ -1,0 +1,98 @@
+// Progress Bar Component Styles
+// ADHD-optimized progress visualization
+
+@import '../tokens';
+
+.progress-bar {
+  width: 100%;
+  background-color: $color-gray-200;
+  border-radius: $border-radius-full;
+  overflow: hidden;
+  position: relative;
+  
+  &.progress-sm { height: 4px; }
+  &.progress-md { height: 8px; }
+  &.progress-lg { height: 12px; }
+  
+  .progress-fill {
+    height: 100%;
+    background-color: $color-brand-primary;
+    border-radius: inherit;
+    transition: width $transition-duration-slow $transition-timing-ease-out;
+    position: relative;
+    
+    &.progress-success { background-color: $color-success; }
+    &.progress-warning { background-color: $color-warning; }
+    &.progress-error { background-color: $color-error; }
+    
+    &.progress-animated::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%,
+        transparent
+      );
+      background-size: 20px 20px;
+      animation: progressStripes 1s linear infinite;
+    }
+  }
+}
+
+// Circular progress
+.progress-circle {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  
+  &.progress-sm { width: 80px; height: 80px; }
+  &.progress-lg { width: 160px; height: 160px; }
+  
+  .progress-circle-bg {
+    fill: none;
+    stroke: $color-gray-200;
+    stroke-width: 8;
+  }
+  
+  .progress-circle-fill {
+    fill: none;
+    stroke: $color-brand-primary;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset $transition-duration-slow $transition-timing-ease-out;
+    
+    &.progress-success { stroke: $color-success; }
+    &.progress-warning { stroke: $color-warning; }
+    &.progress-error { stroke: $color-error; }
+  }
+  
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+}
+
+@keyframes progressStripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 0;
+  }
+}

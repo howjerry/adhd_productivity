@@ -1,0 +1,39 @@
+# Development Dockerfile with hot reload support
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+# Set the working directory
+WORKDIR /app
+
+# Install dotnet tools
+RUN dotnet tool install --global dotnet-ef
+
+# Add dotnet tools to PATH
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Copy solution and project files
+COPY AdhdProductivitySystem.sln ./
+COPY src/AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj ./src/AdhdProductivitySystem.Api/
+COPY src/AdhdProductivitySystem.Application/AdhdProductivitySystem.Application.csproj ./src/AdhdProductivitySystem.Application/
+COPY src/AdhdProductivitySystem.Domain/AdhdProductivitySystem.Domain.csproj ./src/AdhdProductivitySystem.Domain/
+COPY src/AdhdProductivitySystem.Infrastructure/AdhdProductivitySystem.Infrastructure.csproj ./src/AdhdProductivitySystem.Infrastructure/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy the rest of the source code
+COPY src/ ./src/
+
+# Create logs directory
+RUN mkdir -p logs
+
+# Expose the port the app runs on
+EXPOSE 80
+
+# Set environment variables for development
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_URLS=http://+:80
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+
+# Set the entry point to use dotnet watch for hot reload
+WORKDIR /app/src/AdhdProductivitySystem.Api
+ENTRYPOINT ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:80"]

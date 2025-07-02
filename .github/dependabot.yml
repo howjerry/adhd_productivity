@@ -1,0 +1,199 @@
+version: 2
+updates:
+  # Enable version updates for npm (Frontend)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "team-security"
+    assignees:
+      - "team-leads"
+    commit-message:
+      prefix: "feat"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      testing-tools:
+        patterns:
+          - "*testing*"
+          - "vitest"
+          - "jest"
+      build-tools:
+        patterns:
+          - "vite*"
+          - "webpack*"
+          - "@vitejs/*"
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+
+  # Enable version updates for npm (Backend Node.js)
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "team-security"
+    assignees:
+      - "team-leads"
+    commit-message:
+      prefix: "feat"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "backend"
+    groups:
+      express-ecosystem:
+        patterns:
+          - "express*"
+          - "helmet"
+          - "cors"
+      database-tools:
+        patterns:
+          - "pg"
+          - "redis"
+          - "*sql*"
+      security-tools:
+        patterns:
+          - "helmet"
+          - "bcrypt*"
+          - "jsonwebtoken"
+          - "joi"
+      testing-tools:
+        patterns:
+          - "*test*"
+          - "jest"
+          - "supertest"
+
+  # Enable version updates for NuGet (.NET)
+  - package-ecosystem: "nuget"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "team-security"
+    assignees:
+      - "team-leads"
+    commit-message:
+      prefix: "feat"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "backend"
+      - "dotnet"
+    groups:
+      microsoft-packages:
+        patterns:
+          - "Microsoft.*"
+      testing-packages:
+        patterns:
+          - "*Test*"
+          - "xunit*"
+          - "Moq*"
+          - "FluentAssertions"
+      security-packages:
+        patterns:
+          - "*Security*"
+          - "*Auth*"
+        update-types:
+          - "security"
+
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-leads"
+    commit-message:
+      prefix: "ops"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Enable version updates for Docker (Backend)
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-leads"
+    commit-message:
+      prefix: "ops"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "backend"
+
+  # Enable version updates for Docker (Frontend)
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-leads"
+    commit-message:
+      prefix: "ops"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "frontend"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "team-devops"
+    assignees:
+      - "team-leads"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"

@@ -1,0 +1,52 @@
+// ADHD Productivity System - Design Tokens
+// Centralized design system tokens for consistent UI
+
+@import 'colors';
+@import 'typography';
+@import 'spacing';
+@import 'shadows';
+@import 'borders';
+@import 'breakpoints';
+
+// Animation and transition tokens
+$transition-duration-fast: 150ms;
+$transition-duration-normal: 200ms;
+$transition-duration-slow: 300ms;
+$transition-duration-slower: 400ms;
+
+$transition-timing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+$transition-timing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+$transition-timing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+// Z-index scale for layering
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+$z-index-toast: 1080;
+
+// Accessibility tokens
+$focus-ring-width: 2px;
+$focus-ring-offset: 2px;
+$focus-ring-color: $color-focus;
+
+// Component size tokens
+$size-icon-xs: 16px;
+$size-icon-sm: 20px;
+$size-icon-base: 24px;
+$size-icon-lg: 32px;
+$size-icon-xl: 48px;
+
+$size-avatar-xs: 24px;
+$size-avatar-sm: 32px;
+$size-avatar-base: 40px;
+$size-avatar-lg: 48px;
+$size-avatar-xl: 64px;
+
+// Layout tokens
+$max-width-prose: 65ch;
+$max-width-container: 1200px;
+$max-width-reading: 45rem;

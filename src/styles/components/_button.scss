@@ -1,0 +1,299 @@
+// Button Component Styles
+// ADHD-optimized button design with clear visual hierarchy and accessible interactions
+
+@import '../tokens';
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  padding: $spacing-button-padding-y $spacing-button-padding-x;
+  border: $border-width-1 solid transparent;
+  border-radius: $border-radius-button;
+  font-family: $font-family-primary;
+  font-size: $ui-button-size;
+  font-weight: $ui-button-weight;
+  line-height: $ui-button-line-height;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all $transition-duration-fast $transition-timing-ease-out;
+  min-height: $spacing-touch-target;
+  min-width: $spacing-touch-target;
+  user-select: none;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:focus-visible {
+    box-shadow: $shadow-focus;
+    z-index: 1;
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  // Icon handling
+  .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:only-child {
+      margin: 0;
+    }
+  }
+  
+  // Loading state
+  &.btn-loading {
+    position: relative;
+    pointer-events: none;
+    
+    .btn-content {
+      opacity: 0;
+    }
+    
+    .btn-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
+// Primary button - Main actions
+.btn-primary {
+  background-color: $color-brand-primary;
+  border-color: $color-brand-primary;
+  color: $color-text-inverse;
+  box-shadow: $shadow-button;
+  
+  &:hover:not(:disabled) {
+    background-color: $color-brand-primary-dark;
+    border-color: $color-brand-primary-dark;
+    box-shadow: $shadow-button-hover;
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: $shadow-button-active;
+  }
+}
+
+// Secondary button - Supporting actions
+.btn-secondary {
+  background-color: $color-gray-100;
+  border-color: $color-gray-300;
+  color: $color-text-primary;
+  box-shadow: $shadow-button;
+  
+  &:hover:not(:disabled) {
+    background-color: $color-gray-200;
+    border-color: $color-gray-400;
+    box-shadow: $shadow-button-hover;
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: $shadow-button-active;
+  }
+}
+
+// Outline button - Less prominent actions
+.btn-outline {
+  background-color: transparent;
+  border-color: $color-brand-primary;
+  color: $color-brand-primary;
+  
+  &:hover:not(:disabled) {
+    background-color: $color-brand-primary;
+    color: $color-text-inverse;
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+// Ghost button - Minimal visual weight
+.btn-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: $color-text-secondary;
+  box-shadow: none;
+  
+  &:hover:not(:disabled) {
+    background-color: $color-gray-100;
+    color: $color-text-primary;
+  }
+  
+  &:active:not(:disabled) {
+    background-color: $color-gray-200;
+  }
+}
+
+// Danger button - Destructive actions
+.btn-danger {
+  background-color: $color-error;
+  border-color: $color-error;
+  color: $color-text-inverse;
+  box-shadow: $shadow-button;
+  
+  &:hover:not(:disabled) {
+    background-color: $color-error-dark;
+    border-color: $color-error-dark;
+    box-shadow: $shadow-button-hover;
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: $shadow-button-active;
+  }
+  
+  &:focus-visible {
+    box-shadow: $shadow-focus-error;
+  }
+}
+
+// Success button - Positive actions
+.btn-success {
+  background-color: $color-success;
+  border-color: $color-success;
+  color: $color-text-inverse;
+  box-shadow: $shadow-button;
+  
+  &:hover:not(:disabled) {
+    background-color: $color-success-dark;
+    border-color: $color-success-dark;
+    box-shadow: $shadow-button-hover;
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: $shadow-button-active;
+  }
+  
+  &:focus-visible {
+    box-shadow: $shadow-focus-success;
+  }
+}
+
+// Size variations
+.btn-sm {
+  padding: $spacing-1 $spacing-3;
+  font-size: $font-size-sm;
+  min-height: 32px;
+  
+  .btn-icon {
+    width: $size-icon-xs;
+    height: $size-icon-xs;
+  }
+}
+
+.btn-md {
+  padding: $spacing-2 $spacing-4;
+  font-size: $font-size-base;
+  min-height: $spacing-touch-target;
+  
+  .btn-icon {
+    width: $size-icon-sm;
+    height: $size-icon-sm;
+  }
+}
+
+.btn-lg {
+  padding: $spacing-3 $spacing-6;
+  font-size: $font-size-lg;
+  min-height: 52px;
+  
+  .btn-icon {
+    width: $size-icon-base;
+    height: $size-icon-base;
+  }
+}
+
+// Button groups
+.btn-group {
+  display: inline-flex;
+  align-items: center;
+  
+  .btn {
+    border-radius: 0;
+    
+    &:first-child {
+      border-top-left-radius: $border-radius-button;
+      border-bottom-left-radius: $border-radius-button;
+    }
+    
+    &:last-child {
+      border-top-right-radius: $border-radius-button;
+      border-bottom-right-radius: $border-radius-button;
+    }
+    
+    &:not(:first-child) {
+      margin-left: -1px;
+    }
+    
+    &:focus,
+    &:hover {
+      z-index: 1;
+    }
+  }
+}
+
+// Floating action buttons
+.btn-fab {
+  position: fixed;
+  bottom: $spacing-6;
+  right: $spacing-6;
+  width: 56px;
+  height: 56px;
+  border-radius: $border-radius-full;
+  box-shadow: $shadow-lg;
+  z-index: $z-index-fixed;
+  
+  &:hover:not(:disabled) {
+    box-shadow: $shadow-xl;
+  }
+  
+  @include mobile-only {
+    bottom: calc(#{$spacing-6} + #{$spacing-safe-area-bottom});
+    right: $spacing-4;
+  }
+}
+
+// Icon-only buttons
+.btn-icon-only {
+  padding: $spacing-2;
+  
+  &.btn-sm {
+    padding: $spacing-1;
+  }
+  
+  &.btn-lg {
+    padding: $spacing-3;
+  }
+}
+
+// Priority-specific button styling for ADHD workflow
+.btn-priority-high {
+  border-left: 4px solid $color-priority-high;
+}
+
+.btn-priority-medium {
+  border-left: 4px solid $color-priority-medium;
+}
+
+.btn-priority-low {
+  border-left: 4px solid $color-priority-low;
+}

@@ -1,0 +1,151 @@
+// Badge Component Styles
+// ADHD-optimized status indicators
+
+@import '../tokens';
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $border-radius-badge;
+  font-size: $body-xs-size;
+  font-weight: $font-weight-medium;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: $letter-spacing-wide;
+  
+  &.badge-sm {
+    padding: 2px $spacing-1;
+    font-size: 10px;
+  }
+  
+  &.badge-lg {
+    padding: $spacing-2 $spacing-3;
+    font-size: $body-sm-size;
+  }
+  
+  // Color variants
+  &.badge-primary {
+    background-color: $color-brand-primary-light;
+    color: $color-brand-primary-dark;
+  }
+  
+  &.badge-success {
+    background-color: $color-success-light;
+    color: $color-success-dark;
+  }
+  
+  &.badge-warning {
+    background-color: $color-warning-light;
+    color: $color-warning-dark;
+  }
+  
+  &.badge-error {
+    background-color: $color-error-light;
+    color: $color-error-dark;
+  }
+  
+  &.badge-info {
+    background-color: $color-info-light;
+    color: $color-info-dark;
+  }
+  
+  &.badge-gray {
+    background-color: $color-gray-100;
+    color: $color-gray-700;
+  }
+  
+  // Priority badges
+  &.badge-priority-high {
+    background-color: $color-priority-high-light;
+    color: $color-priority-high-dark;
+  }
+  
+  &.badge-priority-medium {
+    background-color: $color-priority-medium-light;
+    color: $color-priority-medium-dark;
+  }
+  
+  &.badge-priority-low {
+    background-color: $color-priority-low-light;
+    color: $color-priority-low-dark;
+  }
+  
+  // Energy level badges
+  &.badge-energy-high {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: $color-energy-high;
+  }
+  
+  &.badge-energy-medium {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: $color-energy-medium;
+  }
+  
+  &.badge-energy-low {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: $color-energy-low;
+  }
+  
+  &.badge-energy-depleted {
+    background-color: rgba(107, 114, 128, 0.1);
+    color: $color-energy-depleted;
+  }
+  
+  // Interactive badges
+  &.badge-interactive {
+    cursor: pointer;
+    transition: all $transition-duration-fast $transition-timing-ease-out;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: $shadow-xs;
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  // Badge with dot indicator
+  &.badge-dot {
+    padding-left: $spacing-3;
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      left: $spacing-2;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
+  }
+  
+  // Notification badge
+  &.badge-notification {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 $spacing-1;
+    background-color: $color-error;
+    color: white;
+    font-size: 11px;
+    font-weight: $font-weight-bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &.badge-notification-lg {
+      min-width: 24px;
+      height: 24px;
+      font-size: 12px;
+    }
+  }
+}
