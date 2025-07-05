@@ -159,16 +159,29 @@ jobs:
           frontend/package-lock.json
           package-lock.json
     
+    - name: Clear npm cache if needed
+      working-directory: ./frontend
+      run: |
+        echo "Package.json hash: $(sha256sum package.json)"
+        echo "Package-lock.json hash: $(sha256sum package-lock.json)"
+        # Clear cache if dependencies seem out of sync
+        if npm ci --dry-run 2>&1 | grep -q "Missing:"; then
+          echo "Dependencies out of sync, clearing npm cache"
+          npm cache clean --force
+        fi
+    
     - name: Install frontend dependencies
       working-directory: ./frontend
       run: |
         if [ -f "package.json" ]; then
-          # Check if package-lock.json is in sync, if not regenerate it
-          if npm ci 2>&1 | grep -q "npm ERR! cipm can only install packages when"; then
-            echo "Package lock file out of sync, regenerating..."
+          # Try npm ci first, fallback to npm install if sync issues
+          if ! npm ci; then
+            echo "npm ci failed, likely due to package-lock.json sync issues"
+            echo "Regenerating package-lock.json with npm install..."
             npm install
+            echo "Dependencies installed successfully"
           else
-            echo "Using existing package-lock.json"
+            echo "Dependencies installed with npm ci"
           fi
         else
           echo "No package.json found in frontend directory"
@@ -344,15 +357,28 @@ jobs:
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
     
+    - name: Clear npm cache if needed
+      working-directory: ./frontend
+      run: |
+        echo "Package.json hash: $(sha256sum package.json)"
+        echo "Package-lock.json hash: $(sha256sum package-lock.json)"
+        # Clear cache if dependencies seem out of sync
+        if npm ci --dry-run 2>&1 | grep -q "Missing:"; then
+          echo "Dependencies out of sync, clearing npm cache"
+          npm cache clean --force
+        fi
+    
     - name: Install frontend dependencies
       working-directory: ./frontend
       run: |
-        # Check if package-lock.json is in sync, if not regenerate it
-        if npm ci 2>&1 | grep -q "npm ERR! cipm can only install packages when"; then
-          echo "Package lock file out of sync, regenerating..."
+        # Try npm ci first, fallback to npm install if sync issues
+        if ! npm ci; then
+          echo "npm ci failed, likely due to package-lock.json sync issues"
+          echo "Regenerating package-lock.json with npm install..."
           npm install
+          echo "Dependencies installed successfully"
         else
-          echo "Using existing package-lock.json"
+          echo "Dependencies installed with npm ci"
         fi
     
     - name: Run frontend linting
