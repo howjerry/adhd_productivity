@@ -1,0 +1,21 @@
+# Semgrep ignore file
+
+# Development static files with localhost links
+frontend-static/
+mock-backend/
+
+# Sample data with test bcrypt hashes
+database/seeds/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.min.css
+
+# Generated files
+*.generated.*
