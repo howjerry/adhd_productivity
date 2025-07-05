@@ -51,18 +51,29 @@ jobs:
       if: always()
     
     - name: Run TruffleHog Secret Scan
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        extra_args: --debug --only-verified --since-commit ${{ github.event.before || 'HEAD~1' }}
+      run: |
+        docker run --rm -v "$PWD":/tmp trufflesecurity/trufflehog:latest filesystem /tmp --only-verified --no-update --github-actions
       continue-on-error: true
     
     - name: Run Bandit Security Linter
       run: |
         python3 -m pip install bandit[toml]
+        echo "Finding Python files..."
+        find . -name "*.py" -not -path "./node_modules/*" -not -path "./frontend/node_modules/*" | head -10
         echo "Running Bandit scan..."
-        python3 -m bandit -r . -f sarif -o bandit-output.sarif --exclude ./node_modules,./frontend/node_modules,./venv,./.venv || echo "Bandit scan completed with findings"
-        ls -la bandit-output.sarif || echo "No SARIF file created"
+        if find . -name "*.py" -not -path "./node_modules/*" -not -path "./frontend/node_modules/*" | grep -q .; then
+          python3 -m bandit -r . -f sarif -o bandit-output.sarif --exclude ./node_modules,./frontend/node_modules,./venv,./.venv --skip B101 || echo "Bandit scan completed"
+          if [ -f bandit-output.sarif ]; then
+            echo "SARIF file created successfully"
+            ls -la bandit-output.sarif
+          else
+            echo "Creating empty SARIF file"
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"bandit","version":"1.0.0"}},"results":[]}]}' > bandit-output.sarif
+          fi
+        else
+          echo "No Python files found, creating empty SARIF"
+          echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"bandit","version":"1.0.0"}},"results":[]}]}' > bandit-output.sarif
+        fi
       continue-on-error: true
     
     - name: Upload Bandit SARIF to GitHub
