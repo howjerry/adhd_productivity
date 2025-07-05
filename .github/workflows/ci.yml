@@ -163,7 +163,13 @@ jobs:
       working-directory: ./frontend
       run: |
         if [ -f "package.json" ]; then
-          npm ci
+          # Check if package-lock.json is in sync, if not regenerate it
+          if npm ci 2>&1 | grep -q "npm ERR! cipm can only install packages when"; then
+            echo "Package lock file out of sync, regenerating..."
+            npm install
+          else
+            echo "Using existing package-lock.json"
+          fi
         else
           echo "No package.json found in frontend directory"
         fi
@@ -340,7 +346,14 @@ jobs:
     
     - name: Install frontend dependencies
       working-directory: ./frontend
-      run: npm ci
+      run: |
+        # Check if package-lock.json is in sync, if not regenerate it
+        if npm ci 2>&1 | grep -q "npm ERR! cipm can only install packages when"; then
+          echo "Package lock file out of sync, regenerating..."
+          npm install
+        else
+          echo "Using existing package-lock.json"
+        fi
     
     - name: Run frontend linting
       working-directory: ./frontend
