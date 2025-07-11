@@ -1,5 +1,4 @@
 import React from 'react'
-import { CheckIcon, XIcon } from 'lucide-react'
 
 const HabitProgress = () => {
   const habits = [

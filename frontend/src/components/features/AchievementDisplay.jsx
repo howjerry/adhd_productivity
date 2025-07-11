@@ -1,5 +1,4 @@
 import React from 'react'
-import { TrophyIcon, StarIcon, Target, Zap } from 'lucide-react'
 
 const AchievementDisplay = () => {
   const recentAchievements = [

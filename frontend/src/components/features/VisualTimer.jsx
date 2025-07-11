@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { PlayIcon, PauseIcon, RotateCcwIcon, SettingsIcon } from 'lucide-react'
+import React, { useState, useEffect, useMemo } from 'react'
+import { PlayIcon, PauseIcon, RotateCcwIcon } from 'lucide-react'
 
 const VisualTimer = () => {
   const [timeLeft, setTimeLeft] = useState(25 * 60) // 25 minutes in seconds
@@ -7,11 +7,11 @@ const VisualTimer = () => {
   const [mode, setMode] = useState('work') // 'work', 'shortBreak', 'longBreak'
   const [sessionCount, setSessionCount] = useState(0)
 
-  const modes = {
+  const modes = useMemo(() => ({
     work: { duration: 25 * 60, label: '專注時間', color: 'text-red-600', bg: 'bg-red-100' },
     shortBreak: { duration: 5 * 60, label: '短休息', color: 'text-green-600', bg: 'bg-green-100' },
     longBreak: { duration: 15 * 60, label: '長休息', color: 'text-blue-600', bg: 'bg-blue-100' }
-  }
+  }), [])
 
   useEffect(() => {
     let interval = null
@@ -21,22 +21,20 @@ const VisualTimer = () => {
       }, 1000)
     } else if (timeLeft === 0) {
       setIsRunning(false)
-      handleSessionComplete()
+      // Move handleSessionComplete logic inside useEffect
+      if (mode === 'work') {
+        setSessionCount(prev => prev + 1)
+        const nextMode = sessionCount % 4 === 3 ? 'longBreak' : 'shortBreak'
+        setMode(nextMode)
+        setTimeLeft(modes[nextMode].duration)
+      } else {
+        setMode('work')
+        setTimeLeft(modes.work.duration)
+      }
     }
     return () => clearInterval(interval)
-  }, [isRunning, timeLeft])
+  }, [isRunning, timeLeft, mode, sessionCount, modes])
 
-  const handleSessionComplete = () => {
-    if (mode === 'work') {
-      setSessionCount(prev => prev + 1)
-      const nextMode = sessionCount % 4 === 3 ? 'longBreak' : 'shortBreak'
-      setMode(nextMode)
-      setTimeLeft(modes[nextMode].duration)
-    } else {
-      setMode('work')
-      setTimeLeft(modes.work.duration)
-    }
-  }
 
   const toggleTimer = () => {
     setIsRunning(!isRunning)

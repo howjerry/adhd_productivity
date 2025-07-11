@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { PlusIcon, SendIcon } from 'lucide-react'
+import { SendIcon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 const QuickCapture = () => {
