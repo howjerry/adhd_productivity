@@ -6,6 +6,7 @@ import { QuickCapture } from '@/components/features/QuickCapture';
 import { PriorityMatrix } from '@/components/features/PriorityMatrix';
 import { TaskCard, ProgressCard } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { TaskStatus } from '@/types';
 import { 
   Plus, 
   Clock, 
@@ -23,9 +24,9 @@ export const DashboardPage: React.FC = () => {
 
   const todayTasks = getTasksForToday();
   const overdueTasks = getOverdueTasks();
-  const activeTasks = tasks.filter(task => task.status === 'active');
+  const activeTasks = tasks.filter(task => task.status === TaskStatus.ACTIVE);
   const completedToday = tasks.filter(task => 
-    task.status === 'completed' && 
+    task.status === TaskStatus.COMPLETED && 
     task.completedAt &&
     new Date(task.completedAt).toDateString() === new Date().toDateString()
   );
@@ -111,7 +112,12 @@ export const DashboardPage: React.FC = () => {
                     title={task.title}
                     description={task.description}
                     priority={task.priority}
-                    status={task.status as 'active' | 'completed' | 'cancelled'}
+                    status={
+                      task.status === TaskStatus.ACTIVE ? 'active' :
+                      task.status === TaskStatus.IN_PROGRESS ? 'in_progress' :
+                      task.status === TaskStatus.COMPLETED ? 'completed' :
+                      'active'
+                    }
                     energyLevel={task.energyLevel}
                     estimatedTime={task.estimatedMinutes}
                     tags={task.tags}

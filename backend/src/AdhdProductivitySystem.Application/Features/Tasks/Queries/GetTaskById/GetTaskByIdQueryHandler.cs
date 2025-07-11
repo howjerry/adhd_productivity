@@ -52,7 +52,6 @@ public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, TaskDto
                 IsRecurring = t.IsRecurring,
                 RecurrencePattern = t.RecurrencePattern,
                 NextOccurrence = t.NextOccurrence,
-                UserId = t.UserId,
                 ParentTaskId = t.ParentTaskId,
                 CreatedAt = t.CreatedAt,
                 UpdatedAt = t.UpdatedAt,

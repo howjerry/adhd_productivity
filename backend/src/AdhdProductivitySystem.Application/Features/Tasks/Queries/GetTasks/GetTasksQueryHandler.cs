@@ -104,7 +104,7 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, List<TaskDto>
         {
             var taskDto = _mapper.Map<TaskDto>(task);
             taskDto.SubTaskCount = task.SubTasks.Count;
-            taskDto.CompletedSubTaskCount = task.SubTasks.Count(st => st.Status == TaskStatus.Completed);
+            taskDto.CompletedSubTaskCount = task.SubTasks.Count(st => st.Status == Domain.Enums.TaskStatus.Completed);
             taskDtos.Add(taskDto);
         }
 

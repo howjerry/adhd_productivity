@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { Task, TaskStatus, Priority, TaskFormData, TaskFilters, UUID } from '@/types';
+import { useAuthStore } from './useAuthStore';
 
 interface TaskState {
   tasks: Task[];
@@ -84,7 +85,7 @@ export const useTaskStore = create<TaskStore>()(
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${get().token}`,
+            'Authorization': `Bearer ${useAuthStore.getState().token}`,
           },
           body: JSON.stringify(data),
         });
@@ -127,7 +128,7 @@ export const useTaskStore = create<TaskStore>()(
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${get().token}`,
+            'Authorization': `Bearer ${useAuthStore.getState().token}`,
           },
           body: JSON.stringify(updates),
         });
@@ -174,7 +175,7 @@ export const useTaskStore = create<TaskStore>()(
         const response = await fetch(`/api/tasks/${id}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${get().token}`,
+            'Authorization': `Bearer ${useAuthStore.getState().token}`,
           },
         });
 
@@ -240,7 +241,7 @@ export const useTaskStore = create<TaskStore>()(
         // TODO: Replace with actual API call
         const response = await fetch('/api/tasks', {
           headers: {
-            'Authorization': `Bearer ${get().token}`,
+            'Authorization': `Bearer ${useAuthStore.getState().token}`,
           },
         });
 

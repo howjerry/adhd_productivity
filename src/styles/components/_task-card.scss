@@ -1,0 +1,101 @@
+// Task Card Component Styles
+.task-card {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-3);
+  }
+
+  &__title {
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  &__priority {
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+    
+    &--urgent {
+      background-color: var(--danger-50);
+      color: var(--danger-600);
+    }
+    
+    &--high {
+      background-color: var(--warning-50);
+      color: var(--warning-600);
+    }
+    
+    &--medium {
+      background-color: var(--primary-50);
+      color: var(--primary-600);
+    }
+    
+    &--low {
+      background-color: var(--gray-100);
+      color: var(--gray-600);
+    }
+  }
+
+  &__content {
+    margin-bottom: var(--spacing-3);
+  }
+
+  &__description {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    
+    &--todo {
+      color: var(--gray-500);
+    }
+    
+    &--in-progress {
+      color: var(--primary-500);
+    }
+    
+    &--completed {
+      color: var(--success-500);
+    }
+  }
+
+  &__due-date {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    
+    &--overdue {
+      color: var(--danger-500);
+    }
+  }
+}

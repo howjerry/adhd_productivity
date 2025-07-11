@@ -64,7 +64,7 @@ class ErrorBoundary extends React.Component<
               <p>
                 The application encountered an unexpected error. Please refresh the page to try again.
               </p>
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="mt-4">
                   <summary className="cursor-pointer font-medium">Error details</summary>
                   <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">

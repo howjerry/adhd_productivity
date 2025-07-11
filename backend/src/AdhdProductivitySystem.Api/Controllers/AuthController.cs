@@ -83,8 +83,8 @@ public class AuthController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Generate tokens
-            var accessToken = _jwtService.GenerateToken(user);
-            var refreshToken = _jwtService.GenerateRefreshToken();
+            var accessToken = _jwtService.GenerateToken(user).Token;
+            var refreshToken = _jwtService.GenerateRefreshToken().Token;
 
             var response = new AuthResponse
             {
@@ -149,8 +149,8 @@ public class AuthController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Generate tokens
-            var accessToken = _jwtService.GenerateToken(user);
-            var refreshToken = _jwtService.GenerateRefreshToken();
+            var accessToken = _jwtService.GenerateToken(user).Token;
+            var refreshToken = _jwtService.GenerateRefreshToken().Token;
 
             var response = new AuthResponse
             {
@@ -256,8 +256,8 @@ public class AuthController : ControllerBase
             }
 
             // Generate new tokens
-            var newAccessToken = _jwtService.GenerateToken(user);
-            var newRefreshToken = _jwtService.GenerateRefreshToken();
+            var newAccessToken = _jwtService.GenerateToken(user).Token;
+            var newRefreshToken = _jwtService.GenerateRefreshToken().Token;
 
             var response = new RefreshResponse
             {

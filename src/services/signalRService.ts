@@ -93,11 +93,11 @@ class SignalRService {
     });
 
     // Co-working session events
-    this.connection.on('SessionJoined', (userId: UUID, userName: string) => {
+    this.connection.on('SessionJoined', (_userId: UUID, userName: string) => {
       console.log(`${userName} joined the session`);
     });
 
-    this.connection.on('SessionLeft', (userId: UUID, userName: string) => {
+    this.connection.on('SessionLeft', (_userId: UUID, userName: string) => {
       console.log(`${userName} left the session`);
     });
   }

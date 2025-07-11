@@ -400,5 +400,4 @@ export const QuickCapture: React.FC<QuickCaptureProps> = ({
   );
 };
 
-
 export default QuickCapture;

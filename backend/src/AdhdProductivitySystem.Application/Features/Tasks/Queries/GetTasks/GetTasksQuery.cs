@@ -12,7 +12,7 @@ public class GetTasksQuery : IRequest<List<TaskDto>>
     /// <summary>
     /// Filter by task status
     /// </summary>
-    public TaskStatus? Status { get; set; }
+    public Domain.Enums.TaskStatus? Status { get; set; }
 
     /// <summary>
     /// Filter by priority

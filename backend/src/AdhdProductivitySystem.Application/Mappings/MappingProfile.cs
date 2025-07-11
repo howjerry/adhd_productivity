@@ -28,8 +28,7 @@ public class MappingProfile : Profile
 
         CreateMap<CaptureItemDto, CaptureItem>()
             .ForMember(dest => dest.User, opt => opt.Ignore())
-            .ForMember(dest => dest.Task, opt => opt.Ignore())
-            .ForMember(dest => dest.TaskTitle, opt => opt.Ignore());
+            .ForMember(dest => dest.Task, opt => opt.Ignore());
 
         // TimerSession mappings
         CreateMap<TimerSession, TimerSessionDto>()
@@ -37,8 +36,7 @@ public class MappingProfile : Profile
 
         CreateMap<TimerSessionDto, TimerSession>()
             .ForMember(dest => dest.User, opt => opt.Ignore())
-            .ForMember(dest => dest.Task, opt => opt.Ignore())
-            .ForMember(dest => dest.TaskTitle, opt => opt.Ignore());
+            .ForMember(dest => dest.Task, opt => opt.Ignore());
 
         // TimeBlock mappings
         CreateMap<TimeBlock, TimeBlockDto>()
@@ -46,8 +44,7 @@ public class MappingProfile : Profile
 
         CreateMap<TimeBlockDto, TimeBlock>()
             .ForMember(dest => dest.User, opt => opt.Ignore())
-            .ForMember(dest => dest.Task, opt => opt.Ignore())
-            .ForMember(dest => dest.TaskTitle, opt => opt.Ignore());
+            .ForMember(dest => dest.Task, opt => opt.Ignore());
 
         // UserProgress mappings
         CreateMap<UserProgress, UserProgressDto>();

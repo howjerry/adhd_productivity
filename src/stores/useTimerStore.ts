@@ -81,7 +81,7 @@ const initialState: TimerStoreState = {
   isInitialized: false,
 };
 
-let timerInterval: NodeJS.Timeout | null = null;
+let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 export const useTimerStore = create<TimerStore>()(
   immer((set, get) => ({
@@ -377,12 +377,9 @@ export const useTimerStore = create<TimerStore>()(
 );
 
 // Persist statistics to localStorage when they change
-useTimerStore.subscribe(
-  (state) => state.statistics,
-  (statistics) => {
-    localStorage.setItem('timer-statistics', JSON.stringify(statistics));
-  }
-);
+useTimerStore.subscribe((state) => {
+  localStorage.setItem('timer-statistics', JSON.stringify(state.statistics));
+});
 
 // Clean up interval on store destruction
 if (typeof window !== 'undefined') {

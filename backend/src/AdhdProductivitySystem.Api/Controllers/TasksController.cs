@@ -44,7 +44,7 @@ public class TasksController : ControllerBase
     [ProducesResponseType(typeof(List<TaskDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<List<TaskDto>>> GetTasks(
-        [FromQuery] TaskStatus? status = null,
+        [FromQuery] Domain.Enums.TaskStatus? status = null,
         [FromQuery] Priority? priority = null,
         [FromQuery] DateTime? dueDateFrom = null,
         [FromQuery] DateTime? dueDateTo = null,
@@ -248,7 +248,7 @@ public class TasksController : ControllerBase
     [ProducesResponseType(typeof(TaskDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<TaskDto>> UpdateTaskStatus(Guid id, [FromBody] TaskStatus status)
+    public async Task<ActionResult<TaskDto>> UpdateTaskStatus(Guid id, [FromBody] Domain.Enums.TaskStatus status)
     {
         try
         {
@@ -293,5 +293,5 @@ public class DeleteTaskCommand : IRequest
 public class UpdateTaskStatusCommand : IRequest<TaskDto>
 {
     public Guid Id { get; set; }
-    public TaskStatus Status { get; set; }
+    public Domain.Enums.TaskStatus Status { get; set; }
 }

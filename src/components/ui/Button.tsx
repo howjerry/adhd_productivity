@@ -3,7 +3,7 @@ import { ButtonProps } from '@/types';
 import clsx from 'clsx';
 
 interface ButtonComponentProps extends ButtonProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;

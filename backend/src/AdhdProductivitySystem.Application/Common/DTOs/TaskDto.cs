@@ -25,7 +25,7 @@ public class TaskDto
     /// <summary>
     /// Task status
     /// </summary>
-    public TaskStatus Status { get; set; }
+    public Domain.Enums.TaskStatus Status { get; set; }
 
     /// <summary>
     /// Task priority

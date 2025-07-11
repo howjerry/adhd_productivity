@@ -19,7 +19,8 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 
 // Floating components
-import { QuickCapture, useFloatingQuickCapture } from '@/components/features/QuickCapture';
+import QuickCapture from '@/components/features/QuickCapture';
+import { useFloatingQuickCapture } from '@/hooks/useFloatingQuickCapture';
 import { FloatingActionButton } from '@/components/ui/Button';
 
 // Global styles

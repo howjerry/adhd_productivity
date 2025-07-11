@@ -15,17 +15,20 @@ interface BaseInputProps {
   size?: 'sm' | 'md' | 'lg';
   error?: boolean;
   success?: boolean;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
 // Text Input Component
 interface InputProps extends BaseInputProps {
-  type?: 'text' | 'email' | 'password' | 'url' | 'tel';
+  type?: 'text' | 'email' | 'password' | 'url' | 'tel' | 'number';
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   priority?: 'high' | 'medium' | 'low';
+  min?: number | string;
+  max?: number | string;
+  step?: number | string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(({
@@ -365,7 +368,7 @@ interface CheckboxProps {
   defaultChecked?: boolean;
   disabled?: boolean;
   required?: boolean;
-  label?: string;
+  label?: string | React.ReactNode;
   onChange?: (checked: boolean) => void;
   className?: string;
 }

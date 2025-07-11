@@ -21,7 +21,7 @@ public class TaskItem : BaseEntity
     /// <summary>
     /// Current status of the task
     /// </summary>
-    public TaskStatus Status { get; set; } = TaskStatus.Todo;
+    public Enums.TaskStatus Status { get; set; } = Enums.TaskStatus.Todo;
 
     /// <summary>
     /// Priority level of the task
