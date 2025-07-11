@@ -1,11 +1,14 @@
 # Claude Max 訂閱戶 GitHub 整合設定指南
 
-## ⚠️ 重要更新（2024年7月）
+## ⚠️ 重要更新（2025年1月）
 
 根據 [Anthropic 官方回應](https://github.com/anthropics/claude-code-action/issues/4)：
 > "Currently we don't support Claude Max in the GitHub action. You'll need to create an API key via console.anthropic.com in order to use the action."
 
-**Claude Code Action 目前不支援 Max/Pro 訂閱戶，必須使用付費 API key。**
+**經過實際測試確認：**
+- Claude Code Action 不支援 Max/Pro 訂閱戶
+- OAuth token (`sk-ant-oat-xxx`) 無法用於 API 調用
+- 必須使用付費 API key (`sk-ant-api-xxx`)
 
 ## 🎯 替代方案
 
@@ -17,9 +20,6 @@
 
 ### 方案二：申請 API Key（需額外付費）
 前往 [console.anthropic.com](https://console.anthropic.com) 申請 API key
-
-### 方案三：自託管 GitHub Runner
-根據社群建議，可以在自己的機器上設定 GitHub runner 並登入 Claude Code
 
 ## 🔧 設定步驟
 
@@ -36,28 +36,17 @@ claude code /install-github-app
 3. 選擇您要授權的儲存庫
 4. 完成安裝流程
 
-### 2. 設定 GitHub App 認證
+### 2. 使用 Claude Helper Workflow
 
-安裝完成後，您需要在儲存庫中設定以下 Secrets：
+GitHub App 安裝後，Helper workflow 會自動運作：
+- **無需設定 API keys 或 Secrets**
+- **完全免費使用**
+- **支援 Max/Pro 訂閱戶**
 
-1. **取得 App 資訊**
-   - 在 GitHub Settings → Developer settings → GitHub Apps 找到您的 Claude App
-   - 記下 App ID
-   - 產生並下載 Private Key (.pem 檔案)
+## 📋 使用說明
 
-2. **新增 GitHub Secrets**
-   
-   前往：`https://github.com/[您的帳號]/adhd_productivity/settings/secrets/actions`
-   
-   新增以下 Secrets：
-   - `CLAUDE_APP_ID`: 您的 GitHub App ID
-   - `CLAUDE_APP_PRIVATE_KEY`: Private Key 的完整內容（包含 BEGIN/END 行）
+Helper workflow (`claude-helper.yml`) 提供以下功能：
 
-### 3. 使用 Workflow
-
-已建立的 workflow (`claude-github-app.yml`) 提供以下功能：
-
-## 📋 功能使用說明
 
 ### 1. Issue 自動建立分支
 
@@ -73,10 +62,10 @@ claude code /install-github-app
 ### 2. PR 程式碼審查
 
 **觸發方式：**
-- 在 PR 加上 `claude-review` 標籤
+- 在 PR 評論中提及 `@claude`
 
 **自動執行：**
-- 產生審查檢查清單
+- 產生程式碼審查提示
 - 提供 Claude.ai 審查步驟
 - 建立審查重點指引
 
@@ -138,7 +127,7 @@ claude code /install-github-app
 
 ### 自訂 Workflow
 
-您可以修改 `claude-github-app.yml` 來：
+您可以修改 `claude-helper.yml` 來：
 
 1. **新增自訂標籤**
    ```yaml
@@ -146,8 +135,8 @@ claude code /install-github-app
    ```
 
 2. **客製化回應訊息**
-   ```bash
-   gh issue comment $ISSUE_NUMBER --body "您的自訂訊息"
+   ```javascript
+   const customMessage = `您的自訂訊息`;
    ```
 
 3. **整合其他工具**
@@ -164,10 +153,10 @@ claude code /install-github-app
    - 檢查 workflow 權限設定
    - 查看 Actions 日誌
 
-2. **認證失敗**
-   - 確認 Secrets 設定正確
-   - 檢查 App 安裝狀態
-   - 確認 Private Key 格式
+2. **Helper 訊息未出現**
+   - 確認使用 `@claude` 觸發
+   - 檢查 GitHub App 安裝狀態
+   - 查看 Actions 日誌
 
 3. **Claude.ai 整合**
    - 確保在 Claude.ai 中提供完整上下文
