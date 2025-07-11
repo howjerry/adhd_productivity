@@ -1,8 +1,25 @@
 # Claude Max 訂閱戶 GitHub 整合設定指南
 
-## 🎯 概述
+## ⚠️ 重要更新（2024年7月）
 
-作為 Claude Max 訂閱戶，您可以透過 GitHub App 整合來連接 Claude 與您的 GitHub 儲存庫，無需使用 API key。
+根據 [Anthropic 官方回應](https://github.com/anthropics/claude-code-action/issues/4)：
+> "Currently we don't support Claude Max in the GitHub action. You'll need to create an API key via console.anthropic.com in order to use the action."
+
+**Claude Code Action 目前不支援 Max/Pro 訂閱戶，必須使用付費 API key。**
+
+## 🎯 替代方案
+
+### 方案一：使用 Claude Helper Workflow（✅ 已實作）
+我們已經為您建立了 `claude-helper.yml`，它會：
+- 自動格式化 GitHub issue 內容
+- 產生適合貼到 Claude.ai 的提示
+- 提供清楚的使用指引
+
+### 方案二：申請 API Key（需額外付費）
+前往 [console.anthropic.com](https://console.anthropic.com) 申請 API key
+
+### 方案三：自託管 GitHub Runner
+根據社群建議，可以在自己的機器上設定 GitHub runner 並登入 Claude Code
 
 ## 🔧 設定步驟
 
