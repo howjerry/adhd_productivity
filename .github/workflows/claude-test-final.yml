@@ -1,0 +1,52 @@
+name: Claude Test Final
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  claude-respond:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'claude'))
+    
+    steps:
+    - name: Comment on Issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueNumber = context.issue.number;
+          const eventName = context.eventName;
+          
+          let message = '';
+          
+          if (eventName === 'issues') {
+            message = `🤖 **Claude 整合測試成功！**
+            
+已偵測到 \`claude\` 標籤。GitHub Actions 正常運作。
+
+**建議的下一步：**
+1. 開啟 [Claude.ai](https://claude.ai)  
+2. 貼上此 issue 的內容
+3. 請 Claude 協助實作功能
+
+---
+*此訊息由 GitHub Actions 自動產生*`;
+          } else if (eventName === 'issue_comment') {
+            message = `🤖 **已收到 @claude 提及！**
+            
+GitHub Actions 整合運作正常。請在 Claude.ai 中繼續對話。`;
+          }
+          
+          await github.rest.issues.createComment({
+            issue_number: issueNumber,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          });
