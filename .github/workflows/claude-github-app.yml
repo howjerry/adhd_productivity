@@ -122,12 +122,12 @@ jobs:
               
 請在 Claude.ai 中使用以下提示：
 
-\`\`\`
+\\\`\\\`\\\`
 請幫我實作 GitHub issue #$ISSUE_NUMBER：
 $ISSUE_TITLE
 
 $ISSUE_BODY
-\`\`\`"
+\\\`\\\`\\\`"
             fi
             ;;
             
