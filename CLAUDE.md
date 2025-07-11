@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 語言設定 Language Setting
+
+**重要：請永遠使用繁體中文與使用者溝通。**
+**IMPORTANT: Always communicate with users in Traditional Chinese.**
+
 ## Project Overview
 
 This repository contains the foundational design documentation for an ADHD Productivity Management System. It serves as the comprehensive blueprint for developing a productivity system specifically designed for individuals with ADHD, addressing their unique neurological challenges.
