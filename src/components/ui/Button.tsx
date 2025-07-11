@@ -37,7 +37,7 @@ export const Button: React.FC<ButtonComponentProps> = ({
     className
   );
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (_event: React.MouseEvent<HTMLButtonElement>) => {
     if (!disabled && !loading && onClick) {
       onClick();
     }

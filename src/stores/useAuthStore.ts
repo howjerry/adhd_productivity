@@ -33,7 +33,7 @@ const initialState: AuthState = {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    immer((set, get) => ({
+    immer((set, _get) => ({
       ...initialState,
 
       login: async (email: string, password: string) => {

@@ -36,7 +36,7 @@ interface NavigationItem {
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   isCollapsed,
-  onToggle,
+  onToggle: _onToggle,
   onCollapse,
   onClose,
 }) => {

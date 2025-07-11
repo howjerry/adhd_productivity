@@ -19,7 +19,7 @@ import {
 
 export const DashboardPage: React.FC = () => {
   const { tasks, getTasksForToday, getOverdueTasks } = useTaskStore();
-  const { statistics, isRunning } = useTimerStore();
+  const { statistics } = useTimerStore();
 
   const todayTasks = getTasksForToday();
   const overdueTasks = getOverdueTasks();
@@ -111,7 +111,7 @@ export const DashboardPage: React.FC = () => {
                     title={task.title}
                     description={task.description}
                     priority={task.priority}
-                    status={task.status as any}
+                    status={task.status as 'active' | 'completed' | 'cancelled'}
                     energyLevel={task.energyLevel}
                     estimatedTime={task.estimatedMinutes}
                     tags={task.tags}

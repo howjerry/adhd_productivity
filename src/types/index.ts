@@ -99,7 +99,7 @@ export interface CaptureItem {
   isProcessed: boolean;
   processedAt?: Timestamp;
   processedIntoTaskId?: UUID;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

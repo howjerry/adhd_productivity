@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Priority, EnergyLevel, CaptureSource } from '@/types';
+import { Priority, EnergyLevel } from '@/types';
 import { useTaskStore } from '@/stores/useTaskStore';
 import clsx from 'clsx';
 import { Mic, MicOff, Plus, Send, Lightbulb, Clock, Tag } from 'lucide-react';
@@ -26,7 +26,6 @@ export const QuickCapture: React.FC<QuickCaptureProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showShortcuts, setShowShortcuts] = useState(false);
   const [focused, setFocused] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -401,40 +400,5 @@ export const QuickCapture: React.FC<QuickCaptureProps> = ({
   );
 };
 
-// Floating Quick Capture Hook
-export const useFloatingQuickCapture = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(true);
-
-  const show = () => {
-    setIsVisible(true);
-    setIsMinimized(false);
-  };
-
-  const hide = () => {
-    setIsVisible(false);
-  };
-
-  const toggle = () => {
-    if (!isVisible) {
-      show();
-    } else {
-      setIsMinimized(!isMinimized);
-    }
-  };
-
-  const minimize = () => {
-    setIsMinimized(true);
-  };
-
-  return {
-    isVisible,
-    isMinimized,
-    show,
-    hide,
-    toggle,
-    minimize,
-  };
-};
 
 export default QuickCapture;

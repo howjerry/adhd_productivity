@@ -131,8 +131,6 @@ export const useTimerStore = create<TimerStore>()(
     },
 
     resume: () => {
-      const state = get();
-      
       set((draft) => {
         draft.isPaused = false;
         draft.isRunning = true;

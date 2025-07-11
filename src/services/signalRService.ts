@@ -163,7 +163,7 @@ class SignalRService {
   }
 
   // Public methods for task management
-  async notifyTaskUpdate(taskId: UUID, changes: any) {
+  async notifyTaskUpdate(taskId: UUID, changes: Record<string, unknown>) {
     if (!this.isConnected()) return;
 
     try {
