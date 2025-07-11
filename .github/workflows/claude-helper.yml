@@ -1,0 +1,66 @@
+name: Claude Helper for Subscribers
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  claude-helper:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'claude'))
+    
+    steps:
+    - name: Create Claude.ai Helper Message
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueNumber = context.issue.number;
+          const issueTitle = context.payload.issue.title;
+          const issueBody = context.payload.issue.body;
+          const issueUrl = context.payload.issue.html_url;
+          
+          let message = `## 🤖 Claude 助手
+          
+          由於您是 Claude Max 訂閱戶，請使用以下步驟：
+          
+          ### 1. 複製以下內容到 Claude.ai：
+          
+          \`\`\`
+          GitHub Issue #${issueNumber}: ${issueTitle}
+          連結: ${issueUrl}
+          
+          內容:
+          ${issueBody}
+          
+          請幫我：
+          1. 分析這個 issue 的需求
+          2. 提供實作建議或程式碼
+          3. 考慮 ADHD 使用者的特殊需求
+          \`\`\`
+          
+          ### 2. 在 Claude.ai 中的建議提示：
+          
+          - "請根據 ADHD 生產力系統的設計原則實作這個功能"
+          - "請使用 React + TypeScript 和 ASP.NET Core"
+          - "請確保符合無障礙設計標準"
+          
+          ### 3. 將 Claude 的回應貼回這裡
+          
+          當您從 Claude.ai 獲得解決方案後，請將程式碼或建議貼回此 issue。
+          
+          ---
+          *此訊息由 GitHub Actions 自動產生，專為 Claude Max 訂閱戶設計*`;
+          
+          await github.rest.issues.createComment({
+            issue_number: issueNumber,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          });
