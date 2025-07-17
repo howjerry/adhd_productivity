@@ -38,7 +38,7 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
         {
             var parentTask = await _context.Tasks
                 .FirstOrDefaultAsync(t => t.Id == request.ParentTaskId.Value && t.UserId == _currentUserService.UserId.Value, cancellationToken);
-            
+
             if (parentTask == null)
             {
                 throw new ArgumentException("Parent task not found or does not belong to the current user.");

@@ -63,7 +63,7 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, List<TaskDto>
         {
             var tags = request.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim().ToLower());
-            
+
             foreach (var tag in tags)
             {
                 query = query.Where(t => t.Tags.ToLower().Contains(tag));
@@ -73,7 +73,7 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, List<TaskDto>
         if (!string.IsNullOrWhiteSpace(request.SearchText))
         {
             var searchText = request.SearchText.ToLower();
-            query = query.Where(t => t.Title.ToLower().Contains(searchText) || 
+            query = query.Where(t => t.Title.ToLower().Contains(searchText) ||
                                    (t.Description != null && t.Description.ToLower().Contains(searchText)));
         }
 

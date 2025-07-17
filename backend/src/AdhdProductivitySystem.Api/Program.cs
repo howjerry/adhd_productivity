@@ -74,8 +74,8 @@ builder.Services.AddAuthentication(options =>
         {
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            
-            if (!string.IsNullOrEmpty(accessToken) && 
+
+            if (!string.IsNullOrEmpty(accessToken) &&
                 (path.StartsWithSegments("/hubs/timer") || path.StartsWithSegments("/hubs/notification")))
             {
                 context.Token = accessToken;
@@ -115,7 +115,7 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
-    
+
     options.AddPolicy("Production", policy =>
     {
         policy.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "https://localhost:3000" })
@@ -208,12 +208,12 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("X-Frame-Options", "DENY");
     context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-    
+
     if (!app.Environment.IsDevelopment())
     {
         context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     }
-    
+
     await next();
 });
 
@@ -244,13 +244,13 @@ app.UseExceptionHandler(appError =>
     {
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        
+
         var response = new
         {
             message = "An internal server error occurred.",
             details = app.Environment.IsDevelopment() ? context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error?.Message : null
         };
-        
+
         await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
     });
 });

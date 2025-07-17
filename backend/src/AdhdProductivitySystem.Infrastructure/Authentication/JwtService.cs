@@ -26,45 +26,45 @@ public class JwtService
     {
         _configuration = configuration;
         _logger = logger;
-        
+
         // Get JWT configuration with fallback support
         _secretKey = GetJwtSecret() ?? throw new ArgumentNullException("JWT:SecretKey not configured");
         _issuer = GetJwtIssuer() ?? throw new ArgumentNullException("JWT:Issuer not configured");
         _audience = GetJwtAudience() ?? throw new ArgumentNullException("JWT:Audience not configured");
         _tokenExpirationMinutes = GetJwtExpirationMinutes();
         _refreshTokenExpirationDays = GetRefreshTokenExpirationDays();
-        
+
         // Validate secret key strength
         ValidateSecretKey(_secretKey);
     }
 
     private string? GetJwtSecret()
     {
-        return _configuration["JWT_SECRET_KEY"] ?? 
-               _configuration["JWT:SecretKey"] ?? 
+        return _configuration["JWT_SECRET_KEY"] ??
+               _configuration["JWT:SecretKey"] ??
                _configuration["JwtSettings:Secret"];
     }
 
     private string? GetJwtIssuer()
     {
-        return _configuration["JWT_ISSUER"] ?? 
-               _configuration["JWT:Issuer"] ?? 
+        return _configuration["JWT_ISSUER"] ??
+               _configuration["JWT:Issuer"] ??
                _configuration["JwtSettings:Issuer"];
     }
 
     private string? GetJwtAudience()
     {
-        return _configuration["JWT_AUDIENCE"] ?? 
-               _configuration["JWT:Audience"] ?? 
+        return _configuration["JWT_AUDIENCE"] ??
+               _configuration["JWT:Audience"] ??
                _configuration["JwtSettings:Audience"];
     }
 
     private int GetJwtExpirationMinutes()
     {
-        var configValue = _configuration["JWT_EXPIRY_MINUTES"] ?? 
-                         _configuration["JWT:TokenExpirationMinutes"] ?? 
+        var configValue = _configuration["JWT_EXPIRY_MINUTES"] ??
+                         _configuration["JWT:TokenExpirationMinutes"] ??
                          _configuration["JwtSettings:ExpiryMinutes"] ?? "60";
-        
+
         return int.TryParse(configValue, out var minutes) ? minutes : 60;
     }
 
@@ -84,7 +84,7 @@ public class JwtService
 
         // Check for common weak patterns
         var lowerKey = secretKey.ToLowerInvariant();
-        if (lowerKey.Contains("secret") || lowerKey.Contains("key") || lowerKey.Contains("password") || 
+        if (lowerKey.Contains("secret") || lowerKey.Contains("key") || lowerKey.Contains("password") ||
             lowerKey.Contains("token") || lowerKey.Contains("test") || lowerKey.Contains("example"))
         {
             throw new ArgumentException("JWT secret key appears to contain weak patterns. Use a cryptographically secure random string.");
@@ -159,10 +159,10 @@ public class JwtService
             var randomNumber = new byte[64]; // Increased size for better security
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
-            
+
             var token = Convert.ToBase64String(randomNumber);
             var expiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);
-            
+
             _logger.LogDebug("Generated refresh token with expiration {ExpiresAt}", expiresAt);
             return (token, expiresAt);
         }
@@ -207,7 +207,7 @@ public class JwtService
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-            
+
             // Additional validation for JWT tokens
             if (validatedToken is not JwtSecurityToken jwt)
             {

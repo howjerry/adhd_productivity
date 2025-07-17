@@ -231,18 +231,18 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     private void UpdateTimestamps()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is Domain.Common.BaseEntity && 
+            .Where(e => e.Entity is Domain.Common.BaseEntity &&
                        (e.State == EntityState.Added || e.State == EntityState.Modified));
 
         foreach (var entry in entries)
         {
             var entity = (Domain.Common.BaseEntity)entry.Entity;
-            
+
             if (entry.State == EntityState.Added)
             {
                 entity.CreatedAt = DateTime.UtcNow;
             }
-            
+
             entity.UpdatedAt = DateTime.UtcNow;
         }
     }

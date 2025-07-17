@@ -106,8 +106,8 @@ public class SecurityValidationService
 
     private string? GetJwtSecret()
     {
-        return _configuration["JWT_SECRET_KEY"] ?? 
-               _configuration["JWT:SecretKey"] ?? 
+        return _configuration["JWT_SECRET_KEY"] ??
+               _configuration["JWT:SecretKey"] ??
                _configuration["JwtSettings:Secret"];
     }
 
@@ -207,8 +207,8 @@ public class SecurityValidationService
 
         // Check for patterns that suggest default/test values
         var lowerValue = value.ToLowerInvariant();
-        return InsecurePatterns.Any(pattern => lowerValue.Contains(pattern) && 
-                                              (lowerValue.Contains("default") || 
+        return InsecurePatterns.Any(pattern => lowerValue.Contains(pattern) &&
+                                              (lowerValue.Contains("default") ||
                                                lowerValue.Contains("example") ||
                                                lowerValue.Contains("test") ||
                                                lowerValue.Contains("demo")));
@@ -229,7 +229,7 @@ public class SecurityValidationService
         // Simple entropy check - count unique characters
         var uniqueChars = value.Distinct().Count();
         var entropy = uniqueChars / (double)value.Length;
-        
+
         // Should have at least 50% unique characters for sufficient entropy
         return entropy >= 0.5 && uniqueChars >= 16;
     }
@@ -246,12 +246,12 @@ public static class SecurityValidationExtensions
     public static IServiceCollection AddSecurityValidation(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<SecurityValidationService>();
-        
+
         // Perform validation at startup
         var serviceProvider = services.BuildServiceProvider();
         var validationService = serviceProvider.GetRequiredService<SecurityValidationService>();
         validationService.ValidateSecurityConfiguration();
-        
+
         return services;
     }
 }

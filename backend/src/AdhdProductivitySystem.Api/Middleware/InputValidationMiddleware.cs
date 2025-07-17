@@ -119,7 +119,7 @@ public class InputValidationMiddleware
         if (request.Method == "POST" || request.Method == "PUT" || request.Method == "PATCH")
         {
             var contentType = request.ContentType?.ToLowerInvariant();
-            
+
             if (string.IsNullOrEmpty(contentType))
             {
                 return false;
