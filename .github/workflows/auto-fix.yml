@@ -40,7 +40,6 @@ jobs:
 
     # Frontend 自動修復
     - name: Fix Frontend Issues
-      working-directory: ./frontend
       run: |
         echo "=== Installing dependencies ==="
         npm ci
