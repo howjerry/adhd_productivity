@@ -8,14 +8,16 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production && \
-    npm cache clean --force
+RUN npm ci
 
 # Copy source code
 COPY . .
 
 # Build the application
 RUN npm run build
+
+# Prune dev dependencies
+RUN npm prune --production
 
 # Production stage
 FROM nginx:alpine
