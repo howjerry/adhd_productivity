@@ -3,15 +3,57 @@
 apiVersion: 1
 
 datasources:
+  # Prometheus 主要資料源
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: http://adhd-prometheus:9090
+    url: http://prometheus:9090
     isDefault: true
-    editable: true
-    basicAuth: false
-    jsonData:
-      timeInterval: 15s
-      queryTimeout: 60s
-      httpMethod: POST
     version: 1
+    editable: false
+    jsonData:
+      httpMethod: POST
+      queryTimeout: 60s
+      timeInterval: 15s
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: loki
+
+  # Loki 日誌資料源
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    version: 1
+    editable: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: prometheus
+          matcherRegex: "trace_id=(\\w+)"
+          name: trace_id
+          url: "/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Prometheus%22,%7B%22expr%22:%22trace_id%3D%5C%22$${__value.raw}%5C%22%22%7D%5D"
+
+  # Node Exporter 指標
+  - name: Node Exporter
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    version: 1
+    editable: false
+    jsonData:
+      httpMethod: POST
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: loki
+
+  # 業務指標資料源
+  - name: Business Metrics
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    version: 1
+    editable: false
+    jsonData:
+      httpMethod: POST
+      queryTimeout: 60s

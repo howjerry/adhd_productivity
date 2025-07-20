@@ -43,9 +43,17 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     /// </summary>
     public DbSet<TimerSession> TimerSessions { get; set; } = null!;
 
+    /// <summary>
+    /// Refresh tokens for authentication
+    /// </summary>
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure PostgreSQL specific settings
+        modelBuilder.ConfigurePostgreSQL();
 
         // Configure User entity
         modelBuilder.Entity<User>(entity =>
@@ -86,6 +94,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Priority);
             entity.HasIndex(e => e.DueDate);
+            
+            // Configure composite indexes for performance optimization
+            entity.HasIndex(e => new { e.UserId, e.Status, e.Priority })
+                .HasDatabaseName("IX_Tasks_UserId_Status_Priority");
+            entity.HasIndex(e => new { e.UserId, e.DueDate })
+                .HasDatabaseName("IX_Tasks_UserId_DueDate");
         });
 
         // Configure CaptureItem entity
@@ -189,6 +203,28 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
             entity.HasIndex(e => e.StartTime);
             entity.HasIndex(e => e.Type);
             entity.HasIndex(e => e.Status);
+        });
+
+        // Configure RefreshToken entity
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Token).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.DeviceId).HasMaxLength(100);
+
+            // Configure unique index on Token
+            entity.HasIndex(e => e.Token).IsUnique();
+
+            // Configure relationships
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure indexes
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => e.IsRevoked);
         });
 
         // Configure base entity properties

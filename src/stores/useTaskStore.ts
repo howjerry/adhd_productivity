@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { Task, TaskStatus, Priority, TaskFormData, TaskFilters, UUID } from '@/types';
-import { useAuthStore } from './useAuthStore';
+import { apiClient } from '@/services/ApiClient';
 
 interface TaskState {
   tasks: Task[];
@@ -80,21 +80,8 @@ export const useTaskStore = create<TaskStore>()(
       });
 
       try {
-        // TODO: Replace with actual API call
-        const response = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${useAuthStore.getState().token}`,
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to create task');
-        }
-
-        const newTask = await response.json();
+        const response = await apiClient.createTask(data);
+        const newTask = response.data;
 
         set((state) => {
           state.tasks.push(newTask);
@@ -123,21 +110,8 @@ export const useTaskStore = create<TaskStore>()(
       get().optimisticUpdate(id, updates);
 
       try {
-        // TODO: Replace with actual API call
-        const response = await fetch(`/api/tasks/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${useAuthStore.getState().token}`,
-          },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update task');
-        }
-
-        const updatedTask = await response.json();
+        const response = await apiClient.updateTask(id, updates);
+        const updatedTask = response.data;
 
         set((state) => {
           const index = state.tasks.findIndex(t => t.id === id);
@@ -171,17 +145,7 @@ export const useTaskStore = create<TaskStore>()(
       });
 
       try {
-        // TODO: Replace with actual API call
-        const response = await fetch(`/api/tasks/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${useAuthStore.getState().token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to delete task');
-        }
+        await apiClient.deleteTask(id);
 
         set((state) => {
           state.lastUpdated = new Date().toISOString();
@@ -238,18 +202,8 @@ export const useTaskStore = create<TaskStore>()(
       });
 
       try {
-        // TODO: Replace with actual API call
-        const response = await fetch('/api/tasks', {
-          headers: {
-            'Authorization': `Bearer ${useAuthStore.getState().token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch tasks');
-        }
-
-        const tasks = await response.json();
+        const response = await apiClient.getTasks();
+        const tasks = response.data;
 
         set((state) => {
           state.tasks = tasks;

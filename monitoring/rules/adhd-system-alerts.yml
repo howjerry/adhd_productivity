@@ -1,0 +1,197 @@
+# ADHD 生產力系統 - 警報規則定義
+
+groups:
+  # 系統基礎設施警報
+  - name: infrastructure_alerts
+    rules:
+      # 服務停機警報
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "服務 {{ $labels.job }} 已停機"
+          description: "服務 {{ $labels.job }} 在實例 {{ $labels.instance }} 上已停機超過 1 分鐘"
+
+      # 高 CPU 使用率警報
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU 使用率過高"
+          description: "實例 {{ $labels.instance }} 的 CPU 使用率已超過 80%，目前為 {{ $value }}%"
+
+      # 高記憶體使用率警報
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "記憶體使用率過高"
+          description: "實例 {{ $labels.instance }} 的記憶體使用率已超過 85%，目前為 {{ $value }}%"
+
+      # 磁碟空間不足警報
+      - alert: LowDiskSpace
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "磁碟空間不足"
+          description: "實例 {{ $labels.instance }} 的磁碟 {{ $labels.mountpoint }} 使用率已超過 85%，目前為 {{ $value }}%"
+
+  # PostgreSQL 資料庫警報
+  - name: postgresql_alerts
+    rules:
+      # 資料庫連線數過高
+      - alert: PostgreSQLTooManyConnections
+        expr: sum by (instance) (pg_stat_activity_count) > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL 連線數過多"
+          description: "PostgreSQL 實例 {{ $labels.instance }} 目前連線數為 {{ $value }}，超過建議值"
+
+      # 資料庫回應時間過長
+      - alert: PostgreSQLSlowQueries
+        expr: avg by (instance) (pg_stat_activity_max_tx_duration{state="active"}) > 60
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL 查詢執行過慢"
+          description: "PostgreSQL 實例 {{ $labels.instance }} 有長時間執行的查詢，平均執行時間 {{ $value }} 秒"
+
+      # 資料庫鎖定等待
+      - alert: PostgreSQLDeadlocks
+        expr: increase(pg_stat_database_deadlocks[1h]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL 發生死鎖"
+          description: "PostgreSQL 在過去 1 小時內發生了 {{ $value }} 次死鎖"
+
+  # Redis 快取警報
+  - name: redis_alerts
+    rules:
+      # Redis 記憶體使用率過高
+      - alert: RedisHighMemoryUsage
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Redis 記憶體使用率過高"
+          description: "Redis 實例 {{ $labels.instance }} 記憶體使用率已達 {{ $value }}%"
+
+      # Redis 連線數過多
+      - alert: RedisTooManyConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Redis 連線數過多"
+          description: "Redis 實例 {{ $labels.instance }} 目前連線數為 {{ $value }}"
+
+      # Redis 回收策略觸發
+      - alert: RedisKeyEviction
+        expr: increase(redis_evicted_keys_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Redis 開始回收 key"
+          description: "Redis 實例 {{ $labels.instance }} 在過去 5 分鐘內回收了 {{ $value }} 個 key"
+
+  # ASP.NET Core 應用程式警報
+  - name: aspnetcore_alerts
+    rules:
+      # HTTP 錯誤率過高
+      - alert: HighHTTPErrorRate
+        expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "HTTP 5xx 錯誤率過高"
+          description: "應用程式 {{ $labels.job }} 的 5xx 錯誤率已達 {{ $value }}%"
+
+      # 回應時間過長
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "HTTP 回應時間過長"
+          description: "應用程式 {{ $labels.job }} 的 95 百分位回應時間已達 {{ $value }} 秒"
+
+      # 垃圾回收時間過長
+      - alert: HighGCPressure
+        expr: rate(dotnet_collection_count_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: ".NET 垃圾回收壓力過高"
+          description: "應用程式 {{ $labels.job }} 的垃圾回收頻率過高，每秒 {{ $value }} 次"
+
+      # 執行緒池耗盡
+      - alert: ThreadPoolStarvation
+        expr: dotnet_threadpool_queue_length > 100
+        for: 2m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: ".NET 執行緒池佇列過長"
+          description: "應用程式 {{ $labels.job }} 的執行緒池佇列長度為 {{ $value }}"
+
+  # 容器監控警報
+  - name: container_alerts
+    rules:
+      # 容器重啟頻繁
+      - alert: ContainerRestartingTooOften
+        expr: rate(container_last_seen[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器重啟頻繁"
+          description: "容器 {{ $labels.name }} 在過去 5 分鐘內重啟了 {{ $value }} 次"
+
+      # 容器記憶體使用率過高
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器記憶體使用率過高"
+          description: "容器 {{ $labels.name }} 記憶體使用率已達 {{ $value }}%"
+
+      # 容器 CPU 使用率過高
+      - alert: ContainerHighCPUUsage
+        expr: (rate(container_cpu_usage_seconds_total[5m]) / on(container) group_left() container_spec_cpu_quota * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器 CPU 使用率過高"
+          description: "容器 {{ $labels.name }} CPU 使用率已達 {{ $value }}%"

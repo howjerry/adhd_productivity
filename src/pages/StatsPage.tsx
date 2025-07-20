@@ -1,5 +1,5 @@
 import React from 'react';
-import { TimerStats } from '@/components/features/VisualTimer';
+import { TimerStats } from '@/components/features/VisualTimer/TimerStats';
 
 export const StatsPage: React.FC = () => {
   return (

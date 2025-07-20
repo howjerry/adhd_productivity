@@ -8,8 +8,7 @@ global:
 
 # 規則檔案
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - "rules/*.yml"
 
 # 監控目標配置
 scrape_configs:
@@ -25,56 +24,46 @@ scrape_configs:
     static_configs:
       - targets: ['adhd-backend:5000']
     metrics_path: /metrics
-    scrape_interval: 30s
+    scrape_interval: 15s
     scrape_timeout: 10s
     honor_labels: true
-    params:
-      format: ['prometheus']
 
-  # ADHD 前端應用監控
-  - job_name: 'adhd-frontend'
-    static_configs:
-      - targets: ['adhd-frontend:3000']
-    metrics_path: /metrics
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # PostgreSQL 資料庫監控 (如果有 postgres_exporter)
+  # PostgreSQL 資料庫監控
   - job_name: 'adhd-postgres'
     static_configs:
-      - targets: ['adhd-postgres:5432']
+      - targets: ['adhd-postgres-exporter:9187']
     metrics_path: /metrics
     scrape_interval: 30s
     scrape_timeout: 10s
 
-  # Redis 快取監控 (如果有 redis_exporter)
+  # Redis 快取監控
   - job_name: 'adhd-redis'
     static_configs:
-      - targets: ['adhd-redis:6379']
+      - targets: ['adhd-redis-exporter:9121']
     metrics_path: /metrics
     scrape_interval: 30s
     scrape_timeout: 10s
 
-  # Nginx 反向代理監控
-  - job_name: 'adhd-nginx'
-    static_configs:
-      - targets: ['adhd-nginx:80']
-    metrics_path: /nginx_status
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # Docker 容器監控 (如果有 cadvisor)
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
-    metrics_path: /metrics
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # 節點監控 (如果有 node_exporter)
+  # 系統資源監控
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ['adhd-node-exporter:9100']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Docker 容器監控
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['adhd-cadvisor:8080']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # AlertManager 監控
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['adhd-alertmanager:9093']
     metrics_path: /metrics
     scrape_interval: 30s
     scrape_timeout: 10s
@@ -84,7 +73,7 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          # - alertmanager:9093
+          - adhd-alertmanager:9093
 
 # 遠程寫入配置 (可選)
 # remote_write:

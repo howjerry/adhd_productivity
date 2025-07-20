@@ -8,9 +8,9 @@ namespace AdhdProductivitySystem.Infrastructure.Authentication;
 /// </summary>
 public class PasswordService
 {
-    private const int SaltSize = 16;
-    private const int HashSize = 32;
-    private const int Iterations = 10000;
+    private const int SaltSize = 32; // 增加 salt 大小提高安全性
+    private const int HashSize = 64; // 增加 hash 大小
+    private const int Iterations = 100000; // 增加迭代次數提高安全性（符合OWASP建議）
 
     /// <summary>
     /// Hashes a password with a generated salt
@@ -79,13 +79,21 @@ public class PasswordService
     }
 
     /// <summary>
-    /// Validates password strength
+    /// Validates password strength with enhanced security requirements
     /// </summary>
     /// <param name="password">Password to validate</param>
     /// <returns>True if password meets requirements, false otherwise</returns>
     public bool IsPasswordStrong(string password)
     {
         if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            return false;
+
+        // 檢查常見弱密碼
+        if (IsCommonWeakPassword(password))
+            return false;
+
+        // 檢查重複字符模式
+        if (HasRepeatingPatterns(password))
             return false;
 
         bool hasUpper = password.Any(char.IsUpper);
@@ -119,5 +127,142 @@ public class PasswordService
         if (password.Any(c => !char.IsLetterOrDigit(c))) score++;
 
         return Math.Min(score, 5);
+    }
+
+    /// <summary>
+    /// 檢查是否為常見弱密碼
+    /// </summary>
+    /// <param name="password">要檢查的密碼</param>
+    /// <returns>如果是常見弱密碼則返回true</returns>
+    private static bool IsCommonWeakPassword(string password)
+    {
+        var commonPasswords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "password", "123456", "123456789", "qwerty", "abc123", "password123",
+            "admin", "letmein", "welcome", "monkey", "1234567890", "dragon",
+            "master", "hello", "freedom", "whatever", "qazwsx", "trustno1",
+            "superman", "batman", "football", "baseball", "basketball", "soccer"
+        };
+
+        return commonPasswords.Contains(password.ToLowerInvariant());
+    }
+
+    /// <summary>
+    /// 檢查是否有重複字符模式
+    /// </summary>
+    /// <param name="password">要檢查的密碼</param>
+    /// <returns>如果有重複模式則返回true</returns>
+    private static bool HasRepeatingPatterns(string password)
+    {
+        // 檢查連續重複字符（如：aaa, 111）
+        for (int i = 0; i < password.Length - 2; i++)
+        {
+            if (password[i] == password[i + 1] && password[i + 1] == password[i + 2])
+                return true;
+        }
+
+        // 檢查簡單的遞增/遞減序列（如：123, abc, 321）
+        for (int i = 0; i < password.Length - 2; i++)
+        {
+            var char1 = password[i];
+            var char2 = password[i + 1];
+            var char3 = password[i + 2];
+
+            if ((char2 == char1 + 1 && char3 == char2 + 1) ||
+                (char2 == char1 - 1 && char3 == char2 - 1))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 產生密碼強度詳細報告
+    /// </summary>
+    /// <param name="password">要評估的密碼</param>
+    /// <returns>密碼強度評估結果</returns>
+    public PasswordStrengthResult EvaluatePasswordStrength(string password)
+    {
+        var result = new PasswordStrengthResult
+        {
+            Password = password,
+            Score = GetPasswordStrength(password),
+            IsStrong = IsPasswordStrong(password)
+        };
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            result.Weaknesses.Add("密碼不能為空");
+            return result;
+        }
+
+        if (password.Length < 8)
+            result.Weaknesses.Add("密碼長度至少需要8個字符");
+
+        if (!password.Any(char.IsUpper))
+            result.Weaknesses.Add("需要包含大寫字母");
+
+        if (!password.Any(char.IsLower))
+            result.Weaknesses.Add("需要包含小寫字母");
+
+        if (!password.Any(char.IsDigit))
+            result.Weaknesses.Add("需要包含數字");
+
+        if (!password.Any(c => !char.IsLetterOrDigit(c)))
+            result.Weaknesses.Add("需要包含特殊字符");
+
+        if (IsCommonWeakPassword(password))
+            result.Weaknesses.Add("這是常見的弱密碼");
+
+        if (HasRepeatingPatterns(password))
+            result.Weaknesses.Add("包含重複模式");
+
+        return result;
+    }
+
+    /// <summary>
+    /// 安全地清除記憶體中的敏感字符串
+    /// </summary>
+    /// <param name="sensitive">要清除的敏感字符串</param>
+    public static void SecureClearString(string sensitive)
+    {
+        if (string.IsNullOrEmpty(sensitive))
+            return;
+
+        unsafe
+        {
+            fixed (char* ptr = sensitive)
+            {
+                for (int i = 0; i < sensitive.Length; i++)
+                {
+                    ptr[i] = '\0';
+                }
+            }
+        }
+    }
+}
+
+/// <summary>
+/// 密碼強度評估結果
+/// </summary>
+public class PasswordStrengthResult
+{
+    public string Password { get; set; } = string.Empty;
+    public int Score { get; set; }
+    public bool IsStrong { get; set; }
+    public List<string> Weaknesses { get; set; } = new();
+    
+    public string GetStrengthDescription()
+    {
+        return Score switch
+        {
+            0 => "非常弱",
+            1 => "弱",
+            2 => "較弱",
+            3 => "中等",
+            4 => "較強",
+            5 => "強",
+            _ => "未知"
+        };
     }
 }

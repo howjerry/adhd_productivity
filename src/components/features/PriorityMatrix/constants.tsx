@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, Target, Clock, Pause } from 'lucide-react';
 import { MatrixQuadrant } from './MatrixQuadrant';
 

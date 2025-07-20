@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useTimerStore } from '@/stores/useTimerStore';
@@ -8,23 +8,29 @@ import { signalRService } from '@/services/signalRService';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 
-// Page components
-import { DashboardPage } from '@/pages/DashboardPage';
-import { TasksPage } from '@/pages/TasksPage';
-import { CalendarPage } from '@/pages/CalendarPage';
-import { CapturePage } from '@/pages/CapturePage';
-import { StatsPage } from '@/pages/StatsPage';
-import { SettingsPage } from '@/pages/SettingsPage';
-import { LoginPage } from '@/pages/LoginPage';
-import { RegisterPage } from '@/pages/RegisterPage';
+// Loading component
+import { PageLoadingSpinner } from '@/components/ui/LoadingSpinner';
 
-// Floating components
+// Lazy loaded page components with proper error boundaries
+const DashboardPage = React.lazy(() => import('@/pages/DashboardPage'));
+const TasksPage = React.lazy(() => import('@/pages/TasksPage'));
+const CalendarPage = React.lazy(() => import('@/pages/CalendarPage'));
+const CapturePage = React.lazy(() => import('@/pages/CapturePage'));
+const StatsPage = React.lazy(() => import('@/pages/StatsPage'));
+const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'));
+const LoginPage = React.lazy(() => import('@/pages/LoginPage'));
+const RegisterPage = React.lazy(() => import('@/pages/RegisterPage'));
+
+// Floating components (not lazy loaded as they're frequently used)
 import QuickCapture from '@/components/features/QuickCapture';
 import { useFloatingQuickCapture } from '@/hooks/useFloatingQuickCapture';
 import { FloatingActionButton } from '@/components/ui/Button';
 
 // Global styles
 import '@/styles/main.scss';
+
+// Development tools
+import PerformancePanel from '@/components/dev/PerformancePanel';
 
 const App: React.FC = () => {
   const { isAuthenticated, user } = useAuthStore();
@@ -92,16 +98,18 @@ const App: React.FC = () => {
       <Router>
         <div className="app">
           <MainLayout>
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/tasks" element={<TasksPage />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/capture" element={<CapturePage />} />
-              <Route path="/stats" element={<StatsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
+            <Suspense fallback={<PageLoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/capture" element={<CapturePage />} />
+                <Route path="/stats" element={<StatsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Suspense>
           </MainLayout>
 
           {/* Floating Quick Capture */}
@@ -122,6 +130,11 @@ const App: React.FC = () => {
               aria-label="Quick capture task"
             />
           )}
+
+          {/* Performance Panel - Only in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <PerformancePanel componentName="AuthenticatedApp" />
+          )}
         </div>
       </Router>
     );
@@ -132,12 +145,19 @@ const App: React.FC = () => {
     <Router>
       <div className="app">
         <AuthLayout>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
+          <Suspense fallback={<PageLoadingSpinner />}>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Suspense>
         </AuthLayout>
+
+        {/* Performance Panel - Only in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <PerformancePanel componentName="UnauthenticatedApp" />
+        )}
       </div>
     </Router>
   );

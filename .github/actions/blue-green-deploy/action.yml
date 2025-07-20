@@ -1,0 +1,288 @@
+# ADHD 生產力系統 - 藍綠部署 Action
+
+name: 'Blue-Green Deployment'
+description: '執行藍綠部署策略以實現零停機部署'
+
+inputs:
+  environment:
+    description: '部署環境 (staging/production)'
+    required: true
+  backend-image:
+    description: '後端 Docker 映像標籤'
+    required: true
+  frontend-image:
+    description: '前端 Docker 映像標籤'
+    required: true
+  ssh-private-key:
+    description: 'SSH 私鑰'
+    required: true
+  host:
+    description: '目標主機'
+    required: true
+  username:
+    description: 'SSH 使用者名稱'
+    required: true
+  rollback-on-failure:
+    description: '失敗時自動回滾'
+    required: false
+    default: 'true'
+  health-check-timeout:
+    description: '健康檢查超時時間 (秒)'
+    required: false
+    default: '300'
+
+outputs:
+  deployment-id:
+    description: '部署 ID'
+    value: ${{ steps.deploy.outputs.deployment-id }}
+  blue-environment:
+    description: '藍環境狀態'
+    value: ${{ steps.deploy.outputs.blue-environment }}
+  green-environment:
+    description: '綠環境狀態'
+    value: ${{ steps.deploy.outputs.green-environment }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 設定 SSH 金鑰
+      shell: bash
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ inputs.ssh-private-key }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ inputs.host }} >> ~/.ssh/known_hosts
+
+    - name: 檢查當前部署狀態
+      id: check-current
+      shell: bash
+      run: |
+        # 檢查目前是藍環境還是綠環境在運行
+        CURRENT_ENV=$(ssh ${{ inputs.username }}@${{ inputs.host }} \
+          "docker ps --format 'table {{.Names}}' | grep -E '(blue|green)' | head -1 | grep -o -E '(blue|green)'" || echo "none")
+        
+        if [[ "$CURRENT_ENV" == "blue" ]]; then
+          NEW_ENV="green"
+          OLD_ENV="blue"
+        elif [[ "$CURRENT_ENV" == "green" ]]; then
+          NEW_ENV="blue"
+          OLD_ENV="green"
+        else
+          NEW_ENV="blue"
+          OLD_ENV="none"
+        fi
+        
+        echo "current-env=$CURRENT_ENV" >> $GITHUB_OUTPUT
+        echo "new-env=$NEW_ENV" >> $GITHUB_OUTPUT
+        echo "old-env=$OLD_ENV" >> $GITHUB_OUTPUT
+        
+        echo "目前環境: $CURRENT_ENV"
+        echo "新環境: $NEW_ENV"
+        echo "舊環境: $OLD_ENV"
+
+    - name: 準備部署腳本
+      shell: bash
+      run: |
+        cat > blue-green-deploy.sh << 'EOF'
+        #!/bin/bash
+        set -euo pipefail
+        
+        ENVIRONMENT="${{ inputs.environment }}"
+        NEW_ENV="${{ steps.check-current.outputs.new-env }}"
+        OLD_ENV="${{ steps.check-current.outputs.old-env }}"
+        BACKEND_IMAGE="${{ inputs.backend-image }}"
+        FRONTEND_IMAGE="${{ inputs.frontend-image }}"
+        DEPLOYMENT_ID="deploy-$(date +%Y%m%d-%H%M%S)"
+        HEALTH_CHECK_TIMEOUT="${{ inputs.health-check-timeout }}"
+        
+        echo "開始藍綠部署..."
+        echo "部署 ID: $DEPLOYMENT_ID"
+        echo "新環境: $NEW_ENV"
+        echo "舊環境: $OLD_ENV"
+        
+        # 進入項目目錄
+        cd /opt/adhd-productivity
+        
+        # 拉取最新映像
+        echo "拉取 Docker 映像..."
+        docker pull $BACKEND_IMAGE
+        docker pull $FRONTEND_IMAGE
+        
+        # 創建新環境的 docker-compose 檔案
+        echo "準備新環境配置..."
+        envsubst < docker-compose.production.yml > docker-compose.$NEW_ENV.yml
+        
+        # 更新映像標籤
+        sed -i "s|ghcr.io/.*-backend.*|$BACKEND_IMAGE|g" docker-compose.$NEW_ENV.yml
+        sed -i "s|ghcr.io/.*-frontend.*|$FRONTEND_IMAGE|g" docker-compose.$NEW_ENV.yml
+        
+        # 更新容器名稱以避免衝突
+        sed -i "s|container_name: adhd-|container_name: adhd-$NEW_ENV-|g" docker-compose.$NEW_ENV.yml
+        
+        # 更新網路名稱
+        sed -i "s|adhd-productivity-prod-network|adhd-productivity-$NEW_ENV-network|g" docker-compose.$NEW_ENV.yml
+        
+        # 啟動新環境
+        echo "啟動新環境 ($NEW_ENV)..."
+        docker-compose -f docker-compose.$NEW_ENV.yml up -d
+        
+        # 等待服務啟動
+        echo "等待服務啟動..."
+        sleep 30
+        
+        # 健康檢查
+        echo "執行健康檢查..."
+        HEALTH_CHECK_PASSED=false
+        START_TIME=$(date +%s)
+        
+        while [[ $(($(date +%s) - START_TIME)) -lt $HEALTH_CHECK_TIMEOUT ]]; do
+          if docker-compose -f docker-compose.$NEW_ENV.yml exec -T adhd-$NEW_ENV-backend curl -f http://localhost:5000/health; then
+            echo "後端健康檢查通過"
+            if docker-compose -f docker-compose.$NEW_ENV.yml exec -T adhd-$NEW_ENV-frontend curl -f http://localhost:80/; then
+              echo "前端健康檢查通過"
+              HEALTH_CHECK_PASSED=true
+              break
+            fi
+          fi
+          echo "健康檢查失敗，30秒後重試..."
+          sleep 30
+        done
+        
+        if [[ "$HEALTH_CHECK_PASSED" != "true" ]]; then
+          echo "健康檢查失敗，停止新環境並回滾"
+          docker-compose -f docker-compose.$NEW_ENV.yml down
+          exit 1
+        fi
+        
+        # 執行資料庫遷移 (如果需要)
+        echo "執行資料庫遷移..."
+        docker-compose -f docker-compose.$NEW_ENV.yml exec -T adhd-$NEW_ENV-backend \
+          dotnet ef database update || echo "資料庫遷移跳過或失敗"
+        
+        # 切換流量到新環境
+        echo "切換流量到新環境..."
+        
+        # 更新 Nginx 配置指向新環境
+        if [[ -f "/etc/nginx/sites-available/adhd-productivity" ]]; then
+          # 備份現有配置
+          cp /etc/nginx/sites-available/adhd-productivity /etc/nginx/sites-available/adhd-productivity.backup.$DEPLOYMENT_ID
+          
+          # 更新上游配置
+          sed -i "s|adhd-backend-prod|adhd-$NEW_ENV-backend|g" /etc/nginx/sites-available/adhd-productivity
+          sed -i "s|adhd-frontend-prod|adhd-$NEW_ENV-frontend|g" /etc/nginx/sites-available/adhd-productivity
+          
+          # 重載 Nginx
+          nginx -t && systemctl reload nginx
+        else
+          echo "警告: Nginx 配置檔案不存在，跳過流量切換"
+        fi
+        
+        # 驗證切換成功
+        echo "驗證流量切換..."
+        sleep 10
+        
+        if curl -f http://localhost/health && curl -f http://localhost/api/health; then
+          echo "流量切換成功"
+        else
+          echo "流量切換失敗，回滾..."
+          # 回滾 Nginx 配置
+          if [[ -f "/etc/nginx/sites-available/adhd-productivity.backup.$DEPLOYMENT_ID" ]]; then
+            cp /etc/nginx/sites-available/adhd-productivity.backup.$DEPLOYMENT_ID /etc/nginx/sites-available/adhd-productivity
+            systemctl reload nginx
+          fi
+          # 停止新環境
+          docker-compose -f docker-compose.$NEW_ENV.yml down
+          exit 1
+        fi
+        
+        # 停止舊環境
+        if [[ "$OLD_ENV" != "none" ]]; then
+          echo "停止舊環境 ($OLD_ENV)..."
+          docker-compose -f docker-compose.$OLD_ENV.yml down || echo "舊環境停止失敗或不存在"
+          
+          # 清理舊環境資源
+          docker system prune -f || true
+        fi
+        
+        # 記錄部署成功
+        echo "部署成功完成"
+        echo "部署 ID: $DEPLOYMENT_ID" > /tmp/deployment-success
+        echo "新環境: $NEW_ENV" >> /tmp/deployment-success
+        echo "部署時間: $(date)" >> /tmp/deployment-success
+        
+        EOF
+        
+        chmod +x blue-green-deploy.sh
+
+    - name: 執行藍綠部署
+      id: deploy
+      shell: bash
+      run: |
+        DEPLOYMENT_ID="deploy-$(date +%Y%m%d-%H%M%S)"
+        
+        # 上傳部署腳本
+        scp blue-green-deploy.sh ${{ inputs.username }}@${{ inputs.host }}:/tmp/
+        
+        # 執行部署
+        if ssh ${{ inputs.username }}@${{ inputs.host }} "sudo /tmp/blue-green-deploy.sh"; then
+          echo "deployment-id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          echo "blue-environment=${{ steps.check-current.outputs.new-env == 'blue' && 'active' || 'inactive' }}" >> $GITHUB_OUTPUT
+          echo "green-environment=${{ steps.check-current.outputs.new-env == 'green' && 'active' || 'inactive' }}" >> $GITHUB_OUTPUT
+          echo "部署成功完成"
+        else
+          echo "部署失敗"
+          exit 1
+        fi
+
+    - name: 部署後清理
+      if: always()
+      shell: bash
+      run: |
+        # 清理 SSH 金鑰
+        rm -f ~/.ssh/id_rsa
+        
+        # 清理部署腳本
+        ssh ${{ inputs.username }}@${{ inputs.host }} "rm -f /tmp/blue-green-deploy.sh" || true
+
+    - name: 回滾處理
+      if: failure() && inputs.rollback-on-failure == 'true'
+      shell: bash
+      run: |
+        echo "部署失敗，執行自動回滾..."
+        
+        cat > rollback.sh << 'EOF'
+        #!/bin/bash
+        set -euo pipefail
+        
+        NEW_ENV="${{ steps.check-current.outputs.new-env }}"
+        OLD_ENV="${{ steps.check-current.outputs.old-env }}"
+        
+        echo "回滾到舊環境: $OLD_ENV"
+        
+        cd /opt/adhd-productivity
+        
+        # 停止失敗的新環境
+        if [[ -f "docker-compose.$NEW_ENV.yml" ]]; then
+          docker-compose -f docker-compose.$NEW_ENV.yml down || true
+        fi
+        
+        # 恢復舊環境 (如果存在)
+        if [[ "$OLD_ENV" != "none" && -f "docker-compose.$OLD_ENV.yml" ]]; then
+          docker-compose -f docker-compose.$OLD_ENV.yml up -d
+          
+          # 恢復 Nginx 配置
+          if [[ -f "/etc/nginx/sites-available/adhd-productivity.backup.deploy-$(date +%Y%m%d)*" ]]; then
+            LATEST_BACKUP=$(ls -t /etc/nginx/sites-available/adhd-productivity.backup.deploy-* | head -1)
+            cp "$LATEST_BACKUP" /etc/nginx/sites-available/adhd-productivity
+            systemctl reload nginx
+          fi
+          
+          echo "回滾完成"
+        else
+          echo "無法回滾：沒有可用的舊環境"
+        fi
+        EOF
+        
+        chmod +x rollback.sh
+        scp rollback.sh ${{ inputs.username }}@${{ inputs.host }}:/tmp/
+        ssh ${{ inputs.username }}@${{ inputs.host }} "sudo /tmp/rollback.sh"

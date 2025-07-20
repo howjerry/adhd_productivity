@@ -1,0 +1,545 @@
+# ADHD 生產力系統 - 生產環境 CI/CD 流水線
+# 此工作流程處理自動化測試、建構、安全掃描和生產部署
+
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署環境'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: '強制部署 (跳過某些檢查)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '18'
+  DOTNET_VERSION: '8.0'
+
+jobs:
+  # ===========================================
+  # 程式碼品質和安全性檢查
+  # ===========================================
+  code-quality:
+    name: 程式碼品質檢查
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 設定 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: 設定 .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: 安裝前端依賴
+      run: npm ci
+    
+    - name: 前端 Lint 檢查
+      run: npm run lint
+    
+    - name: 前端類型檢查
+      run: npm run type-check
+    
+    - name: 後端程式碼格式檢查
+      run: |
+        cd backend
+        dotnet format --verify-no-changes --verbosity diagnostic
+    
+    - name: 上傳程式碼分析結果
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: code-analysis-results.sarif
+      continue-on-error: true
+
+  # ===========================================
+  # 安全性掃描
+  # ===========================================
+  security-scan:
+    name: 安全性掃描
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+    
+    - name: 執行 Trivy 漏洞掃描
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: 上傳 Trivy 掃描結果
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: npm 安全性稽核
+      run: |
+        npm audit --audit-level high
+        npm audit fix --dry-run
+    
+    - name: .NET 安全性稽核
+      run: |
+        cd backend
+        dotnet list package --vulnerable --include-transitive
+    
+    - name: 檢查敏感檔案
+      run: |
+        # 檢查是否有意外提交的敏感檔案
+        if find . -name "*.env" -not -path "./node_modules/*" -not -name "*.env.example" | grep -q .; then
+          echo "發現敏感的 .env 檔案"
+          exit 1
+        fi
+        
+        if find . -name "*.key" -o -name "*.pem" -o -name "*.p12" | grep -q .; then
+          echo "發現私鑰檔案"
+          exit 1
+        fi
+
+  # ===========================================
+  # 自動化測試
+  # ===========================================
+  frontend-tests:
+    name: 前端測試
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+    
+    - name: 設定 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: 安裝依賴
+      run: npm ci
+    
+    - name: 執行單元測試
+      run: npm test -- --coverage --watchAll=false
+    
+    - name: 執行 E2E 測試
+      run: |
+        npm run build
+        npm run test:e2e
+    
+    - name: 上傳測試覆蓋率
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: frontend
+        name: frontend-coverage
+
+  backend-tests:
+    name: 後端測試
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: adhd_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+    
+    - name: 設定 .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: 快取 NuGet 套件
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    
+    - name: 還原 NuGet 套件
+      run: |
+        cd backend
+        dotnet restore
+    
+    - name: 建構解決方案
+      run: |
+        cd backend
+        dotnet build --no-restore --configuration Release
+    
+    - name: 執行單元測試
+      run: |
+        cd backend
+        dotnet test --no-build --configuration Release \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults/ \
+          --logger "trx;LogFileName=test-results.trx"
+      env:
+        POSTGRES_HOST: localhost
+        POSTGRES_DB: adhd_test
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_password
+        REDIS_HOST: localhost
+    
+    - name: 執行整合測試
+      run: |
+        cd backend
+        dotnet test tests/Infrastructure.Tests/ \
+          --configuration Release \
+          --logger "trx;LogFileName=integration-test-results.trx"
+      env:
+        POSTGRES_HOST: localhost
+        POSTGRES_DB: adhd_test
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_password
+        REDIS_HOST: localhost
+    
+    - name: 上傳測試結果
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Backend Test Results
+        path: backend/TestResults/*.trx
+        reporter: dotnet-trx
+    
+    - name: 上傳測試覆蓋率
+      uses: codecov/codecov-action@v4
+      with:
+        file: backend/TestResults/*/coverage.cobertura.xml
+        flags: backend
+        name: backend-coverage
+
+  # ===========================================
+  # Docker 映像建構
+  # ===========================================
+  build-images:
+    name: 建構 Docker 映像
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan, frontend-tests, backend-tests]
+    if: github.event_name != 'pull_request'
+    
+    outputs:
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      backend-digest: ${{ steps.build-backend.outputs.digest }}
+      frontend-digest: ${{ steps.build-frontend.outputs.digest }}
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+    
+    - name: 設定 Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: 登入 Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: 產生後端映像元資料
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=sha,prefix={{branch}}-
+    
+    - name: 建構並推送後端映像
+      id: build-backend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        target: production
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+    
+    - name: 產生前端映像元資料
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=sha,prefix={{branch}}-
+    
+    - name: 建構並推送前端映像
+      id: build-frontend
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        target: production
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+    
+    - name: 掃描映像漏洞
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ steps.meta-backend.outputs.tags }}
+        format: 'sarif'
+        output: 'trivy-image-results.sarif'
+    
+    - name: 上傳映像掃描結果
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-image-results.sarif'
+
+  # ===========================================
+  # 部署到 Staging 環境
+  # ===========================================
+  deploy-staging:
+    name: 部署到 Staging
+    runs-on: ubuntu-latest
+    needs: [build-images]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.adhd-productivity.com
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+    
+    - name: 設定部署環境變數
+      run: |
+        echo "DEPLOYMENT_ENV=staging" >> $GITHUB_ENV
+        echo "DEPLOYMENT_URL=staging.adhd-productivity.com" >> $GITHUB_ENV
+    
+    - name: 部署到 Staging
+      uses: ./.github/actions/deploy
+      with:
+        environment: staging
+        backend-image: ${{ needs.build-images.outputs.backend-image }}
+        frontend-image: ${{ needs.build-images.outputs.frontend-image }}
+        ssh-private-key: ${{ secrets.STAGING_SSH_PRIVATE_KEY }}
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+    
+    - name: 執行冒煙測試
+      run: |
+        sleep 30  # 等待服務啟動
+        curl -f https://staging.adhd-productivity.com/health
+        curl -f https://staging.adhd-productivity.com/api/health
+    
+    - name: 執行 E2E 測試 (Staging)
+      run: |
+        npm ci
+        npm run test:e2e:staging
+
+  # ===========================================
+  # 部署到生產環境
+  # ===========================================
+  deploy-production:
+    name: 部署到生產環境
+    runs-on: ubuntu-latest
+    needs: [build-images, deploy-staging]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://adhd-productivity.com
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+    
+    - name: 檢查部署前提條件
+      run: |
+        # 檢查是否為有效的版本標籤
+        if [[ "${{ github.ref }}" =~ refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          echo "有效的版本標籤: ${{ github.ref }}"
+        elif [[ "${{ github.event.inputs.force_deploy }}" == "true" ]]; then
+          echo "強制部署已啟用"
+        else
+          echo "無效的部署觸發條件"
+          exit 1
+        fi
+    
+    - name: 生產環境備份
+      uses: ./.github/actions/backup
+      with:
+        ssh-private-key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+    
+    - name: 藍綠部署到生產環境
+      uses: ./.github/actions/blue-green-deploy
+      with:
+        environment: production
+        backend-image: ${{ needs.build-images.outputs.backend-image }}
+        frontend-image: ${{ needs.build-images.outputs.frontend-image }}
+        ssh-private-key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+    
+    - name: 執行生產環境健康檢查
+      run: |
+        # 等待部署完成
+        sleep 60
+        
+        # 健康檢查
+        for i in {1..10}; do
+          if curl -f https://adhd-productivity.com/health; then
+            echo "生產環境健康檢查通過"
+            break
+          fi
+          echo "健康檢查失敗，重試 $i/10"
+          sleep 30
+        done
+    
+    - name: 執行生產環境冒煙測試
+      run: |
+        curl -f https://adhd-productivity.com/api/health
+        curl -f https://adhd-productivity.com/api/version
+    
+    - name: 通知部署完成
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        channel: '#deployment'
+        text: |
+          生產環境部署完成
+          版本: ${{ github.ref }}
+          狀態: ${{ job.status }}
+          URL: https://adhd-productivity.com
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ===========================================
+  # 部署後驗證和監控
+  # ===========================================
+  post-deployment-validation:
+    name: 部署後驗證
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always() && needs.deploy-production.result == 'success'
+    
+    steps:
+    - name: 檢出程式碼
+      uses: actions/checkout@v4
+    
+    - name: 等待服務穩定
+      run: sleep 120
+    
+    - name: 執行完整的 API 測試
+      run: |
+        npm ci
+        npm run test:api:production
+    
+    - name: 效能基準測試
+      run: |
+        # 使用 Lighthouse CI 或其他效能測試工具
+        npm run test:performance:production
+    
+    - name: 監控指標檢查
+      run: |
+        # 檢查 Prometheus 指標
+        curl -f https://adhd-productivity.com/metrics
+    
+    - name: 創建部署標籤
+      if: success()
+      run: |
+        git tag -a "deployed-$(date +%Y%m%d-%H%M%S)" -m "Successfully deployed to production"
+        git push origin --tags
+
+# ===========================================
+# 工作流程完成通知
+# ===========================================
+  workflow-complete:
+    name: 工作流程完成通知
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-deployment-validation]
+    if: always()
+    
+    steps:
+    - name: 彙總結果
+      run: |
+        echo "部署結果: ${{ needs.deploy-production.result }}"
+        echo "驗證結果: ${{ needs.post-deployment-validation.result }}"
+    
+    - name: 發送完成通知
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        channel: '#deployment'
+        text: |
+          ADHD 生產力系統 CI/CD 流水線完成
+          分支: ${{ github.ref }}
+          提交: ${{ github.sha }}
+          部署狀態: ${{ needs.deploy-production.result }}
+          驗證狀態: ${{ needs.post-deployment-validation.result }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

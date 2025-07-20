@@ -82,4 +82,9 @@ public class User : BaseEntity
     /// User's timer sessions
     /// </summary>
     public virtual ICollection<TimerSession> TimerSessions { get; set; } = new List<TimerSession>();
+
+    /// <summary>
+    /// User's refresh tokens
+    /// </summary>
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

@@ -1,0 +1,297 @@
+# ADHD 生產力系統 - Prometheus 警報規則
+
+groups:
+  # ===========================================
+  # 系統層級警報
+  # ===========================================
+  - name: system-alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: "高 CPU 使用率警報"
+          description: "實例 {{ $labels.instance }} 的 CPU 使用率已超過 80%，目前為 {{ $value }}%"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: "高記憶體使用率警報"
+          description: "實例 {{ $labels.instance }} 的記憶體使用率已超過 85%，目前為 {{ $value }}%"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 20
+        for: 5m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "磁碟空間不足警報"
+          description: "實例 {{ $labels.instance }} 掛載點 {{ $labels.mountpoint }} 可用空間低於 20%，剩餘 {{ $value }}%"
+
+      - alert: HighLoadAverage
+        expr: node_load1 > 2
+        for: 10m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: "高系統負載警報"
+          description: "實例 {{ $labels.instance }} 的 1 分鐘平均負載為 {{ $value }}，超過閾值"
+
+  # ===========================================
+  # 應用程式層級警報
+  # ===========================================
+  - name: application-alerts
+    rules:
+      - alert: ApplicationDown
+        expr: up{job=~"adhd-backend|adhd-frontend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "應用程式服務停止"
+          description: "服務 {{ $labels.job }} 在實例 {{ $labels.instance }} 上無法存取"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "高錯誤率警報"
+          description: "應用程式錯誤率已超過 5%，目前為 {{ $value }}%"
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "高回應時間警報"
+          description: "95% 的請求回應時間超過 2 秒，目前為 {{ $value }} 秒"
+
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "高請求率警報"
+          description: "每秒請求數超過 100，目前為 {{ $value }} 請求/秒"
+
+      - alert: LowRequestRate
+        expr: rate(http_requests_total[15m]) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "異常低請求率"
+          description: "15 分鐘內平均請求率低於正常水平，可能服務異常"
+
+  # ===========================================
+  # 資料庫層級警報
+  # ===========================================
+  - name: database-alerts
+    rules:
+      - alert: PostgreSQLDown
+        expr: postgres_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL 資料庫無法連接"
+          description: "PostgreSQL 資料庫 {{ $labels.instance }} 無法連接"
+
+      - alert: PostgreSQLHighConnections
+        expr: postgres_stat_database_numbackends / postgres_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "PostgreSQL 連接數過高"
+          description: "資料庫 {{ $labels.datname }} 連接數使用率已超過 80%，目前為 {{ $value }}%"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(postgres_stat_user_tables_n_tup_upd[5m]) + rate(postgres_stat_user_tables_n_tup_ins[5m]) + rate(postgres_stat_user_tables_n_tup_del[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "PostgreSQL 高寫入操作"
+          description: "資料庫寫入操作頻率異常，每秒 {{ $value }} 次操作"
+
+      - alert: PostgreSQLReplicationLag
+        expr: postgres_replication_lag > 10
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL 複製延遲"
+          description: "主從複製延遲 {{ $value }} 秒，超過閾值"
+
+  # ===========================================
+  # Redis 快取層級警報
+  # ===========================================
+  - name: redis-alerts
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: redis
+        annotations:
+          summary: "Redis 服務無法連接"
+          description: "Redis 實例 {{ $labels.instance }} 無法連接"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          category: redis
+        annotations:
+          summary: "Redis 記憶體使用率過高"
+          description: "Redis 實例 {{ $labels.instance }} 記憶體使用率已超過 90%，目前為 {{ $value }}%"
+
+      - alert: RedisHighConnections
+        expr: redis_connected_clients / redis_config_maxclients * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: redis
+        annotations:
+          summary: "Redis 連接數過高"
+          description: "Redis 實例 {{ $labels.instance }} 連接數使用率已超過 80%，目前為 {{ $value }}%"
+
+      - alert: RedisKeyEvictions
+        expr: rate(redis_evicted_keys_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: redis
+        annotations:
+          summary: "Redis 金鑰被大量清除"
+          description: "Redis 實例 {{ $labels.instance }} 每秒清除 {{ $value }} 個金鑰，可能記憶體不足"
+
+  # ===========================================
+  # 網路和負載均衡警報
+  # ===========================================
+  - name: network-alerts
+    rules:
+      - alert: NginxDown
+        expr: nginx_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: network
+        annotations:
+          summary: "Nginx 服務停止"
+          description: "Nginx 實例 {{ $labels.instance }} 無法存取"
+
+      - alert: HighNginxErrorRate
+        expr: rate(nginx_http_requests_total{status=~"4..|5.."}[5m]) / rate(nginx_http_requests_total[5m]) * 100 > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: network
+        annotations:
+          summary: "Nginx 高錯誤率"
+          description: "Nginx 錯誤率已超過 10%，目前為 {{ $value }}%"
+
+      - alert: SSLCertificateExpiry
+        expr: ssl_certificate_expiry_days < 30
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "SSL 憑證即將過期"
+          description: "SSL 憑證將在 {{ $value }} 天後過期，請及時更新"
+
+  # ===========================================
+  # 業務指標警報
+  # ===========================================
+  - name: business-alerts
+    rules:
+      - alert: LowUserActivity
+        expr: rate(user_login_total[1h]) < 1
+        for: 2h
+        labels:
+          severity: info
+          category: business
+        annotations:
+          summary: "使用者活動度低"
+          description: "過去 1 小時內平均每小時登入次數低於 1 次"
+
+      - alert: HighTaskCreationRate
+        expr: rate(tasks_created_total[5m]) > 50
+        for: 5m
+        labels:
+          severity: info
+          category: business
+        annotations:
+          summary: "任務創建率異常高"
+          description: "每秒創建 {{ $value }} 個任務，可能有異常行為"
+
+      - alert: DatabaseBackupFailed
+        expr: time() - database_backup_last_success_timestamp > 86400
+        for: 1h
+        labels:
+          severity: critical
+          category: backup
+        annotations:
+          summary: "資料庫備份失敗"
+          description: "資料庫備份已超過 24 小時未成功執行"
+
+  # ===========================================
+  # 監控系統自身警報
+  # ===========================================
+  - name: monitoring-alerts
+    rules:
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Prometheus 監控目標離線"
+          description: "監控目標 {{ $labels.job }} ({{ $labels.instance }}) 已離線 5 分鐘"
+
+      - alert: PrometheusConfigReloadFailed
+        expr: prometheus_config_last_reload_successful == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Prometheus 配置重載失敗"
+          description: "Prometheus 配置重載失敗，請檢查配置檔案"
+
+      - alert: GrafanaDown
+        expr: up{job="grafana"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: monitoring
+        annotations:
+          summary: "Grafana 服務停止"
+          description: "Grafana 監控面板無法存取"

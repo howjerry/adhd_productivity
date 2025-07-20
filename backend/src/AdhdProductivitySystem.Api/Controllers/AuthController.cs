@@ -1,3 +1,4 @@
+using AdhdProductivitySystem.Api.Models;
 using AdhdProductivitySystem.Application.Common.Interfaces;
 using AdhdProductivitySystem.Domain.Entities;
 using AdhdProductivitySystem.Domain.Enums;
@@ -5,7 +6,10 @@ using AdhdProductivitySystem.Infrastructure.Authentication;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace AdhdProductivitySystem.Api.Controllers;
 
@@ -39,15 +43,28 @@ public class AuthController : ControllerBase
     /// <param name="request">Registration request</param>
     /// <returns>Authentication response</returns>
     [HttpPost("register")]
-    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status429TooManyRequests)]
+    public async Task<ActionResult<ApiResponse<AuthResponse>>> Register([FromBody] RegisterRequest request)
     {
         try
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                
+                return BadRequest(ApiResponse.CreateError(
+                    "ValidationError",
+                    "請求資料格式不正確",
+                    details: new { ValidationErrors = validationErrors }
+                ));
             }
 
             // Check if user already exists
@@ -56,13 +73,19 @@ public class AuthController : ControllerBase
 
             if (existingUser != null)
             {
-                return BadRequest("User with this email already exists");
+                return BadRequest(ApiResponse.CreateError(
+                    "UserAlreadyExists",
+                    "此電子郵件已被註冊，請使用其他電子郵件或嘗試登入"
+                ));
             }
 
             // Validate password strength
             if (!_passwordService.IsPasswordStrong(request.Password))
             {
-                return BadRequest("Password must be at least 8 characters long and contain uppercase, lowercase, digit, and special character");
+                return BadRequest(ApiResponse.CreateError(
+                    "WeakPassword",
+                    "密碼強度不足：需至少 8 個字元，包含大小寫字母、數字和特殊字元"
+                ));
             }
 
             // Hash password
@@ -84,12 +107,24 @@ public class AuthController : ControllerBase
 
             // Generate tokens
             var accessToken = _jwtService.GenerateToken(user).Token;
-            var refreshToken = _jwtService.GenerateRefreshToken().Token;
+            var refreshTokenResult = _jwtService.GenerateRefreshToken();
+            
+            // 儲存 refresh token 到資料庫
+            var refreshToken = new RefreshToken
+            {
+                UserId = user.Id,
+                Token = refreshTokenResult.Token,
+                ExpiresAt = refreshTokenResult.ExpiresAt,
+                DeviceId = Request.Headers["User-Agent"].ToString()
+            };
+            
+            _context.RefreshTokens.Add(refreshToken);
+            await _context.SaveChangesAsync();
 
             var response = new AuthResponse
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken,
+                RefreshToken = refreshTokenResult.Token,
                 User = new UserInfo
                 {
                     Id = user.Id,
@@ -103,12 +138,17 @@ public class AuthController : ControllerBase
             };
 
             _logger.LogInformation("User registered successfully: {Email}", user.Email);
-            return CreatedAtAction(nameof(GetCurrentUser), response);
+            return CreatedAtAction(nameof(GetCurrentUser), ApiResponse<AuthResponse>.CreateSuccess(response));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error registering user");
-            return StatusCode(500, "An error occurred while registering the user");
+            var errorId = Guid.NewGuid().ToString("N")[..8];
+            _logger.LogError(ex, "使用者註冊失敗 - ErrorId: {ErrorId}, Email: {Email}", errorId, request.Email);
+            return StatusCode(500, ApiResponse.CreateError(
+                "RegistrationError",
+                "註冊過程中發生錯誤，請稍後再試",
+                errorId
+            ));
         }
     }
 
@@ -118,15 +158,28 @@ public class AuthController : ControllerBase
     /// <param name="request">Login request</param>
     /// <returns>Authentication response</returns>
     [HttpPost("login")]
-    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status429TooManyRequests)]
+    public async Task<ActionResult<ApiResponse<AuthResponse>>> Login([FromBody] LoginRequest request)
     {
         try
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                
+                return BadRequest(ApiResponse.CreateError(
+                    "ValidationError",
+                    "請求資料格式不正確",
+                    details: new { ValidationErrors = validationErrors }
+                ));
             }
 
             // Find user
@@ -135,13 +188,19 @@ public class AuthController : ControllerBase
 
             if (user == null)
             {
-                return Unauthorized("Invalid email or password");
+                return Unauthorized(ApiResponse.CreateError(
+                    "InvalidCredentials",
+                    "電子郵件或密碼錯誤"
+                ));
             }
 
             // Verify password
             if (!_passwordService.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
             {
-                return Unauthorized("Invalid email or password");
+                return Unauthorized(ApiResponse.CreateError(
+                    "InvalidCredentials",
+                    "電子郵件或密碼錯誤"
+                ));
             }
 
             // Update last active time
@@ -150,12 +209,24 @@ public class AuthController : ControllerBase
 
             // Generate tokens
             var accessToken = _jwtService.GenerateToken(user).Token;
-            var refreshToken = _jwtService.GenerateRefreshToken().Token;
+            var refreshTokenResult = _jwtService.GenerateRefreshToken();
+            
+            // 儲存 refresh token 到資料庫
+            var refreshToken = new RefreshToken
+            {
+                UserId = user.Id,
+                Token = refreshTokenResult.Token,
+                ExpiresAt = refreshTokenResult.ExpiresAt,
+                DeviceId = Request.Headers["User-Agent"].ToString()
+            };
+            
+            _context.RefreshTokens.Add(refreshToken);
+            await _context.SaveChangesAsync();
 
             var response = new AuthResponse
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken,
+                RefreshToken = refreshTokenResult.Token,
                 User = new UserInfo
                 {
                     Id = user.Id,
@@ -169,12 +240,17 @@ public class AuthController : ControllerBase
             };
 
             _logger.LogInformation("User logged in successfully: {Email}", user.Email);
-            return Ok(response);
+            return Ok(ApiResponse<AuthResponse>.CreateSuccess(response));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error logging in user");
-            return StatusCode(500, "An error occurred while logging in");
+            var errorId = Guid.NewGuid().ToString("N")[..8];
+            _logger.LogError(ex, "使用者登入失敗 - ErrorId: {ErrorId}, Email: {Email}", errorId, request.Email);
+            return StatusCode(500, ApiResponse.CreateError(
+                "LoginError",
+                "登入過程中發生錯誤，請稍後再試",
+                errorId
+            ));
         }
     }
 
@@ -184,22 +260,28 @@ public class AuthController : ControllerBase
     /// <returns>Current user information</returns>
     [HttpGet("me")]
     [Authorize]
-    [ProducesResponseType(typeof(UserInfo), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<UserInfo>> GetCurrentUser()
+    [ProducesResponseType(typeof(ApiResponse<UserInfo>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ApiResponse<UserInfo>>> GetCurrentUser()
     {
         try
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
             {
-                return Unauthorized();
+                return Unauthorized(ApiResponse.CreateError(
+                    "InvalidToken",
+                    "無效的身分驗證令牌"
+                ));
             }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {
-                return Unauthorized();
+                return Unauthorized(ApiResponse.CreateError(
+                    "UserNotFound",
+                    "找不到使用者資料"
+                ));
             }
 
             var userInfo = new UserInfo
@@ -214,12 +296,17 @@ public class AuthController : ControllerBase
                 ProfilePictureUrl = user.ProfilePictureUrl
             };
 
-            return Ok(userInfo);
+            return Ok(ApiResponse<UserInfo>.CreateSuccess(userInfo));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting current user");
-            return StatusCode(500, "An error occurred while getting user information");
+            var errorId = Guid.NewGuid().ToString("N")[..8];
+            _logger.LogError(ex, "獲取使用者資訊失敗 - ErrorId: {ErrorId}", errorId);
+            return StatusCode(500, ApiResponse.CreateError(
+                "UserInfoError",
+                "獲取使用者資訊時發生錯誤，請稍後再試",
+                errorId
+            ));
         }
     }
 
@@ -229,48 +316,81 @@ public class AuthController : ControllerBase
     /// <param name="request">Refresh token request</param>
     /// <returns>New access token</returns>
     [HttpPost("refresh")]
-    [ProducesResponseType(typeof(RefreshResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<RefreshResponse>> RefreshToken([FromBody] RefreshRequest request)
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType(typeof(ApiResponse<RefreshResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status429TooManyRequests)]
+    public async Task<ActionResult<ApiResponse<RefreshResponse>>> RefreshToken([FromBody] RefreshRequest request)
     {
         try
         {
-            // Validate the refresh token (in a real implementation, you'd store refresh tokens in the database)
-            // For simplicity, we'll just validate the access token and generate a new one
-            var principal = _jwtService.ValidateToken(request.AccessToken);
-            if (principal == null)
+            // 從資料庫查詢 refresh token
+            var existingToken = await _context.RefreshTokens
+                .Include(rt => rt.User)
+                .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
+
+            if (existingToken == null)
             {
-                return Unauthorized("Invalid token");
+                return Unauthorized(ApiResponse.CreateError(
+                    "InvalidRefreshToken",
+                    "無效的重新整理令牌"
+                ));
             }
 
-            var userIdClaim = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            // 檢查 token 是否有效
+            if (!existingToken.IsValid)
             {
-                return Unauthorized("Invalid token");
+                return Unauthorized(ApiResponse.CreateError(
+                    "ExpiredRefreshToken",
+                    "重新整理令牌已過期或被撤銷"
+                ));
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var user = existingToken.User;
             if (user == null)
             {
-                return Unauthorized("User not found");
+                return Unauthorized(ApiResponse.CreateError(
+                    "UserNotFound",
+                    "找不到使用者資料"
+                ));
             }
 
-            // Generate new tokens
+            // 撤銷舊的 refresh token
+            existingToken.Revoke();
+
+            // 產生新的 tokens
             var newAccessToken = _jwtService.GenerateToken(user).Token;
-            var newRefreshToken = _jwtService.GenerateRefreshToken().Token;
+            var newRefreshTokenResult = _jwtService.GenerateRefreshToken();
+            
+            // 儲存新的 refresh token
+            var newRefreshToken = new RefreshToken
+            {
+                UserId = user.Id,
+                Token = newRefreshTokenResult.Token,
+                ExpiresAt = newRefreshTokenResult.ExpiresAt,
+                DeviceId = Request.Headers["User-Agent"].ToString()
+            };
+            
+            _context.RefreshTokens.Add(newRefreshToken);
+            await _context.SaveChangesAsync();
 
             var response = new RefreshResponse
             {
                 AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken
+                RefreshToken = newRefreshTokenResult.Token
             };
 
-            return Ok(response);
+            return Ok(ApiResponse<RefreshResponse>.CreateSuccess(response));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error refreshing token");
-            return StatusCode(500, "An error occurred while refreshing the token");
+            var errorId = Guid.NewGuid().ToString("N")[..8];
+            _logger.LogError(ex, "Token刷新失敗 - ErrorId: {ErrorId}", errorId);
+            return StatusCode(500, ApiResponse.CreateError(
+                "TokenRefreshError",
+                "Token刷新時發生錯誤，請重新登入",
+                errorId
+            ));
         }
     }
 
@@ -280,58 +400,37 @@ public class AuthController : ControllerBase
     /// <returns>Success response</returns>
     [HttpPost("logout")]
     [Authorize]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult Logout()
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse>> Logout()
     {
-        // In a real implementation, you'd invalidate the refresh token
-        // For now, we'll just return success
-        return Ok(new { message = "Logged out successfully" });
+        try
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Ok(ApiResponse.CreateSuccess("已成功登出"));
+            }
+
+            // 撤銷該使用者所有有效的 refresh tokens
+            var activeTokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+                .ToListAsync();
+
+            foreach (var token in activeTokens)
+            {
+                token.Revoke();
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse.CreateSuccess("已成功登出"));
+        }
+        catch (Exception ex)
+        {
+            var errorId = Guid.NewGuid().ToString("N")[..8];
+            _logger.LogError(ex, "登出過程發生錯誤 - ErrorId: {ErrorId}", errorId);
+            // 即使出錯也返回成功，避免洩漏錯誤訊息，但提供錯誤ID供追蹤
+            return Ok(ApiResponse.CreateSuccess("已成功登出", new ApiMeta { Additional = new Dictionary<string, object> { { "errorId", errorId } } }));
+        }
     }
-}
-
-// DTOs for authentication
-public class RegisterRequest
-{
-    public string Email { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public AdhdType AdhdType { get; set; }
-    public string? TimeZone { get; set; }
-}
-
-public class LoginRequest
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}
-
-public class RefreshRequest
-{
-    public string AccessToken { get; set; } = string.Empty;
-    public string RefreshToken { get; set; } = string.Empty;
-}
-
-public class AuthResponse
-{
-    public string AccessToken { get; set; } = string.Empty;
-    public string RefreshToken { get; set; } = string.Empty;
-    public UserInfo User { get; set; } = new();
-}
-
-public class RefreshResponse
-{
-    public string AccessToken { get; set; } = string.Empty;
-    public string RefreshToken { get; set; } = string.Empty;
-}
-
-public class UserInfo
-{
-    public Guid Id { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public AdhdType AdhdType { get; set; }
-    public string TimeZone { get; set; } = string.Empty;
-    public Theme PreferredTheme { get; set; }
-    public bool IsOnboardingCompleted { get; set; }
-    public string? ProfilePictureUrl { get; set; }
 }

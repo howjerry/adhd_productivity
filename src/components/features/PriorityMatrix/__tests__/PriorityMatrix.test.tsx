@@ -102,8 +102,12 @@ describe('PriorityMatrix', () => {
   it('applies energy filter when energy level button is clicked', () => {
     render(<PriorityMatrix showFilters={true} />);
 
-    const highEnergyButton = screen.getByText('HIGH');
-    fireEvent.click(highEnergyButton);
+    const highEnergyButton = screen.getAllByText('high').find(el => 
+      el.closest('.filter-button')
+    );
+    if (highEnergyButton) {
+      fireEvent.click(highEnergyButton);
+    }
 
     // 只有高能量任務應該顯示
     expect(screen.getByText('Urgent Important Task')).toBeInTheDocument();

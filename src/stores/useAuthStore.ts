@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist } from 'zustand/middleware';
 import { User, UserPreferences } from '@/types';
+import { apiClient } from '@/services/ApiClient';
 
 interface AuthState {
   user: User | null;
@@ -43,20 +44,8 @@ export const useAuthStore = create<AuthStore>()(
         });
 
         try {
-          // TODO: Replace with actual API call
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Invalid credentials');
-          }
-
-          const { user, token } = await response.json();
+          const response = await apiClient.login(email, password);
+          const { user, token } = response.data;
 
           set((state) => {
             state.user = user;
@@ -81,20 +70,8 @@ export const useAuthStore = create<AuthStore>()(
         });
 
         try {
-          // TODO: Replace with actual API call
-          const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password, username }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Registration failed');
-          }
-
-          const { user, token } = await response.json();
+          const response = await apiClient.register(email, password, username);
+          const { user, token } = response.data;
 
           set((state) => {
             state.user = user;

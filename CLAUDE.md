@@ -124,3 +124,7 @@ When referencing these documents:
 - Consider ADHD user needs in all technical decisions
 
 The documents are written in Traditional Chinese but contain extensive technical terminology and system specifications that are universally applicable to software development.
+
+## Memory Notes
+
+- 遭遇問題不應該採用補丁或簡化方式，深度思考找尋核心問題才開始規劃分析解決方案並執行

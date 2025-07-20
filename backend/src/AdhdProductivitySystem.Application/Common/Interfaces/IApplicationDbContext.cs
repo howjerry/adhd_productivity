@@ -39,6 +39,11 @@ public interface IApplicationDbContext
     DbSet<TimerSession> TimerSessions { get; }
 
     /// <summary>
+    /// Refresh tokens for authentication
+    /// </summary>
+    DbSet<RefreshToken> RefreshTokens { get; }
+
+    /// <summary>
     /// Saves changes to the database
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>

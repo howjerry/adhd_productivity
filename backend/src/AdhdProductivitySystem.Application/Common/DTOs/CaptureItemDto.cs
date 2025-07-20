@@ -13,6 +13,11 @@ public class CaptureItemDto
     public Guid Id { get; set; }
 
     /// <summary>
+    /// User ID who owns this capture item
+    /// </summary>
+    public Guid UserId { get; set; }
+
+    /// <summary>
     /// Captured content
     /// </summary>
     public string Content { get; set; } = string.Empty;

@@ -8,6 +8,7 @@ interface ButtonComponentProps extends ButtonProps {
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   priority?: 'high' | 'medium' | 'low';
+  title?: string;
 }
 
 export const Button: React.FC<ButtonComponentProps> = ({
@@ -23,6 +24,7 @@ export const Button: React.FC<ButtonComponentProps> = ({
   iconPosition = 'left',
   fullWidth = false,
   priority,
+  title,
   ...props
 }) => {
   const buttonClasses = clsx(
@@ -93,6 +95,7 @@ export const Button: React.FC<ButtonComponentProps> = ({
       disabled={disabled || loading}
       onClick={handleClick}
       aria-disabled={disabled || loading}
+      title={title}
       {...props}
     >
       {content}

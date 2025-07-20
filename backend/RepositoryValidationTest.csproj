@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Include="Moq" Version="4.20.69" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="src\AdhdProductivitySystem.Application\AdhdProductivitySystem.Application.csproj" />
+    <ProjectReference Include="src\AdhdProductivitySystem.Infrastructure\AdhdProductivitySystem.Infrastructure.csproj" />
+    <ProjectReference Include="src\AdhdProductivitySystem.Domain\AdhdProductivitySystem.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="fixes\**" />
+  </ItemGroup>
+
+</Project>

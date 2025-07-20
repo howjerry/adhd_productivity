@@ -1,5 +1,8 @@
-# Use the official .NET 8.0 SDK image for building
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Use the official .NET 8.0 SDK image for building and running (development approach)
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS development
+
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
@@ -17,36 +20,21 @@ RUN dotnet restore
 # Copy the rest of the source code
 COPY src/ ./src/
 
-# Build the application
-RUN dotnet build -c Release --no-restore
-
-# Publish the application
-RUN dotnet publish src/AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj -c Release -o /app/publish --no-restore
-
-# Use the official .NET 8.0 runtime image for the final stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-
-# Set the working directory
-WORKDIR /app
-
-# Copy the published application from the build stage
-COPY --from=build /app/publish .
-
 # Create logs directory
 RUN mkdir -p logs
 
 # Expose the port the app runs on
-EXPOSE 80
-EXPOSE 443
+EXPOSE 5000
 
 # Set environment variables
-ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_URLS=http://+:5000
 
 # Add a non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r appuser && useradd -r -g appuser -m appuser
 RUN chown -R appuser:appuser /app
+RUN chown -R appuser:appuser /home/appuser
 USER appuser
 
-# Set the entry point
-ENTRYPOINT ["dotnet", "AdhdProductivitySystem.Api.dll"]
+# Set the entry point to run in development mode
+ENTRYPOINT ["dotnet", "run", "--project", "src/AdhdProductivitySystem.Api/AdhdProductivitySystem.Api.csproj"]

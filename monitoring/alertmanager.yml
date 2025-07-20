@@ -1,0 +1,97 @@
+# ADHD 生產力系統 - AlertManager 警報配置
+
+global:
+  # 全域設定
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@adhdproductivity.local'
+  smtp_require_tls: false
+  
+# 警報路由配置
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+  routes:
+    # 高嚴重度警報 - 立即通知
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 5m
+    
+    # 資料庫相關警報
+    - match:
+        service: 'database'
+      receiver: 'database-alerts'
+      group_wait: 30s
+      repeat_interval: 15m
+    
+    # 快取相關警報
+    - match:
+        service: 'cache'
+      receiver: 'cache-alerts'
+      group_wait: 30s
+      repeat_interval: 15m
+    
+    # 應用程式效能警報
+    - match:
+        service: 'backend'
+      receiver: 'backend-alerts'
+      group_wait: 30s
+      repeat_interval: 10m
+
+# 接收器配置
+receivers:
+  # 預設接收器
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+
+  # 嚴重警報接收器
+  - name: 'critical-alerts'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/critical'
+        send_resolved: true
+        title: '🚨 ADHD 系統嚴重警報'
+        text: |
+          警報: {{ .GroupLabels.alertname }}
+          嚴重度: {{ .CommonLabels.severity }}
+          服務: {{ .CommonLabels.service }}
+          詳細資訊: {{ range .Alerts }}{{ .Annotations.description }}{{ end }}
+
+  # 資料庫警報接收器
+  - name: 'database-alerts'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/database'
+        send_resolved: true
+        title: '📊 ADHD 系統資料庫警報'
+
+  # 快取警報接收器
+  - name: 'cache-alerts'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/cache'
+        send_resolved: true
+        title: '⚡ ADHD 系統快取警報'
+
+  # 後端應用程式警報接收器
+  - name: 'backend-alerts'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/backend'
+        send_resolved: true
+        title: '🔧 ADHD 系統後端警報'
+
+# 抑制規則
+inhibit_rules:
+  # 如果有嚴重的實例故障，則抑制其他警報
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+# 警報模板
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

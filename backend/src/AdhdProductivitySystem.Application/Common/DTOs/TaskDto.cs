@@ -13,6 +13,11 @@ public class TaskDto
     public Guid Id { get; set; }
 
     /// <summary>
+    /// User ID who owns this task
+    /// </summary>
+    public Guid UserId { get; set; }
+
+    /// <summary>
     /// Task title
     /// </summary>
     public string Title { get; set; } = string.Empty;

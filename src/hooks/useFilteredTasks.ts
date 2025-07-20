@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Task, Priority, EnergyLevel } from '@/types';
+import { Task, Priority, EnergyLevel, TaskStatus } from '@/types';
 
 interface UseFilteredTasksProps {
   tasks: Task[];
@@ -36,7 +36,7 @@ export const useFilteredTasks = ({ tasks, energyFilter, tagFilter }: UseFiltered
     };
 
     tasks
-      .filter(task => task.status !== 'completed' && task.status !== 'cancelled')
+      .filter(task => task.status !== TaskStatus.COMPLETED && task.status !== TaskStatus.CANCELLED)
       .filter(task => !energyFilter || task.energyLevel === energyFilter)
       .filter(task => !tagFilter || task.tags.includes(tagFilter))
       .forEach(task => {

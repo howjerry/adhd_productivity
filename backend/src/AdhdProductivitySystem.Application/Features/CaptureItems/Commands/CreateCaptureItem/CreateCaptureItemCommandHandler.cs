@@ -11,16 +11,19 @@ namespace AdhdProductivitySystem.Application.Features.CaptureItems.Commands.Crea
 /// </summary>
 public class CreateCaptureItemCommandHandler : IRequestHandler<CreateCaptureItemCommand, CaptureItemDto>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly ICaptureItemRepository _captureItemRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public CreateCaptureItemCommandHandler(
-        IApplicationDbContext context,
+        ICaptureItemRepository captureItemRepository,
+        IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
         IMapper mapper)
     {
-        _context = context;
+        _captureItemRepository = captureItemRepository;
+        _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _mapper = mapper;
     }
@@ -46,9 +49,20 @@ public class CreateCaptureItemCommandHandler : IRequestHandler<CreateCaptureItem
             CreatedBy = _currentUserService.UserEmail
         };
 
-        _context.CaptureItems.Add(captureItem);
-        await _context.SaveChangesAsync(cancellationToken);
+        _captureItemRepository.Add(captureItem);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<CaptureItemDto>(captureItem);
+        // 使用 Repository 的方法取得創建的項目
+        var captureItemDto = await _captureItemRepository.GetCaptureItemByIdAsync(
+            _currentUserService.UserId.Value,
+            captureItem.Id,
+            cancellationToken);
+
+        if (captureItemDto == null)
+        {
+            throw new InvalidOperationException("Failed to retrieve created capture item.");
+        }
+
+        return captureItemDto;
     }
 }

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Task, Priority } from '@/types';
+import { Priority } from '@/types';
 import { useTaskStore } from '@/stores/useTaskStore';
 import { quadrants } from '@/components/features/PriorityMatrix/constants';
 

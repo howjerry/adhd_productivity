@@ -63,9 +63,25 @@ public class JwtService
     {
         var configValue = _configuration["JWT_EXPIRY_MINUTES"] ?? 
                          _configuration["JWT:TokenExpirationMinutes"] ?? 
-                         _configuration["JwtSettings:ExpiryMinutes"] ?? "60";
+                         _configuration["JwtSettings:ExpiryMinutes"] ?? "15"; // 預設縮短到15分鐘
         
-        return int.TryParse(configValue, out var minutes) ? minutes : 60;
+        var minutes = int.TryParse(configValue, out var parsed) ? parsed : 15;
+        
+        // 限制最大過期時間為2小時（120分鐘）
+        if (minutes > 120)
+        {
+            _logger.LogWarning("JWT expiration time of {Minutes} minutes exceeds maximum allowed (120). Using 120 minutes instead.", minutes);
+            return 120;
+        }
+        
+        // 限制最小過期時間為5分鐘
+        if (minutes < 5)
+        {
+            _logger.LogWarning("JWT expiration time of {Minutes} minutes is below minimum (5). Using 15 minutes instead.", minutes);
+            return 15;
+        }
+        
+        return minutes;
     }
 
     private int GetRefreshTokenExpirationDays()
@@ -203,7 +219,20 @@ public class JwtService
                 ValidateLifetime = validateLifetime,
                 RequireExpirationTime = true,
                 RequireSignedTokens = true,
-                ClockSkew = TimeSpan.FromMinutes(2) // Allow small clock skew
+                RequireAudience = true, // 強制驗證audience
+                ValidateActor = false, // 我們不使用actor
+                ValidateTokenReplay = false, // 目前不實作token replay protection
+                ClockSkew = TimeSpan.FromSeconds(30), // 縮短時鐘偏差容忍度
+                LifetimeValidator = (notBefore, expires, token, parameters) =>
+                {
+                    // 自訂生命週期驗證邏輯
+                    var now = DateTime.UtcNow;
+                    if (notBefore.HasValue && notBefore.Value > now.AddMinutes(5))
+                        return false; // token 不能在未來太遠的時間生效
+                    if (expires.HasValue && expires.Value < now)
+                        return false; // token 已過期
+                    return true;
+                }
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
@@ -288,6 +317,57 @@ public class JwtService
         catch
         {
             return true;
+        }
+    }
+
+    /// <summary>
+    /// 獲取Token的剩餘有效時間
+    /// </summary>
+    /// <param name="token">JWT token</param>
+    /// <returns>剩餘時間，如果token無效則返回null</returns>
+    public TimeSpan? GetTokenRemainingTime(string token)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jsonToken = tokenHandler.ReadJwtToken(token);
+            var remaining = jsonToken.ValidTo - DateTime.UtcNow;
+            return remaining > TimeSpan.Zero ? remaining : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 驗證Token的簽發時間是否合理（防止過舊的token被重用）
+    /// </summary>
+    /// <param name="token">JWT token</param>
+    /// <param name="maxAge">最大年齡</param>
+    /// <returns>True if token is not too old, false otherwise</returns>
+    public bool IsTokenNotTooOld(string token, TimeSpan? maxAge = null)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jsonToken = tokenHandler.ReadJwtToken(token);
+            
+            var issuedAt = jsonToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Iat)?.Value;
+            if (string.IsNullOrEmpty(issuedAt) || !long.TryParse(issuedAt, out var iatValue))
+            {
+                return false;
+            }
+            
+            var issuedTime = DateTimeOffset.FromUnixTimeSeconds(iatValue).DateTime;
+            var age = DateTime.UtcNow - issuedTime;
+            var maxAllowedAge = maxAge ?? TimeSpan.FromHours(24); // 預設最大24小時
+            
+            return age <= maxAllowedAge;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

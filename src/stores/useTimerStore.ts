@@ -20,6 +20,7 @@ interface TimerStoreState extends TimerState {
     totalSessions: number;
   };
   isInitialized: boolean;
+  timerInterval: ReturnType<typeof setInterval> | null;
 }
 
 interface TimerActions {
@@ -79,9 +80,8 @@ const initialState: TimerStoreState = {
     totalSessions: 0,
   },
   isInitialized: false,
+  timerInterval: null,
 };
-
-let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 export const useTimerStore = create<TimerStore>()(
   immer((set, get) => ({
@@ -97,17 +97,17 @@ export const useTimerStore = create<TimerStore>()(
         if (taskId) {
           draft.currentTaskId = taskId;
         }
+        
+        // Clear existing interval
+        if (draft.timerInterval) {
+          clearInterval(draft.timerInterval);
+        }
+        
+        // Start new interval
+        draft.timerInterval = setInterval(() => {
+          get().tick();
+        }, 1000);
       });
-
-      // Clear existing interval
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-
-      // Start new interval
-      timerInterval = setInterval(() => {
-        get().tick();
-      }, 1000);
 
       // Show notification
       if (state.settings.desktopNotifications && 'Notification' in window) {
@@ -122,24 +122,24 @@ export const useTimerStore = create<TimerStore>()(
       set((draft) => {
         draft.isPaused = true;
         draft.isRunning = false;
+        
+        if (draft.timerInterval) {
+          clearInterval(draft.timerInterval);
+          draft.timerInterval = null;
+        }
       });
-
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
     },
 
     resume: () => {
       set((draft) => {
         draft.isPaused = false;
         draft.isRunning = true;
+        
+        // Start interval again
+        draft.timerInterval = setInterval(() => {
+          get().tick();
+        }, 1000);
       });
-
-      // Start interval again
-      timerInterval = setInterval(() => {
-        get().tick();
-      }, 1000);
     },
 
     stop: () => {
@@ -147,12 +147,12 @@ export const useTimerStore = create<TimerStore>()(
         draft.isRunning = false;
         draft.isPaused = false;
         draft.startedAt = undefined;
+        
+        if (draft.timerInterval) {
+          clearInterval(draft.timerInterval);
+          draft.timerInterval = null;
+        }
       });
-
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
     },
 
     reset: () => {
@@ -384,8 +384,9 @@ useTimerStore.subscribe((state) => {
 // Clean up interval on store destruction
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => {
-    if (timerInterval) {
-      clearInterval(timerInterval);
+    const state = useTimerStore.getState();
+    if (state.timerInterval) {
+      clearInterval(state.timerInterval);
     }
   });
 }

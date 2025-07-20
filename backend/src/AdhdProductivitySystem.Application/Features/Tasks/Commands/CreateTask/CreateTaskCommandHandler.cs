@@ -3,7 +3,6 @@ using AdhdProductivitySystem.Application.Common.Interfaces;
 using AdhdProductivitySystem.Domain.Entities;
 using AutoMapper;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace AdhdProductivitySystem.Application.Features.Tasks.Commands.CreateTask;
 
@@ -12,16 +11,19 @@ namespace AdhdProductivitySystem.Application.Features.Tasks.Commands.CreateTask;
 /// </summary>
 public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskDto>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly ITaskRepository _taskRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public CreateTaskCommandHandler(
-        IApplicationDbContext context,
+        ITaskRepository taskRepository,
+        IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
         IMapper mapper)
     {
-        _context = context;
+        _taskRepository = taskRepository;
+        _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _mapper = mapper;
     }
@@ -36,10 +38,12 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
         // Validate parent task exists if specified
         if (request.ParentTaskId.HasValue)
         {
-            var parentTask = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.Id == request.ParentTaskId.Value && t.UserId == _currentUserService.UserId.Value, cancellationToken);
+            var hasPermission = await _taskRepository.HasPermissionAsync(
+                _currentUserService.UserId.Value, 
+                request.ParentTaskId.Value, 
+                cancellationToken);
             
-            if (parentTask == null)
+            if (!hasPermission)
             {
                 throw new ArgumentException("Parent task not found or does not belong to the current user.");
             }
@@ -67,17 +71,19 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
             task.NextOccurrence = CalculateNextOccurrence(DateTime.UtcNow, request.RecurrencePattern);
         }
 
-        _context.Tasks.Add(task);
-        await _context.SaveChangesAsync(cancellationToken);
+        _taskRepository.Add(task);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Load task with related data for mapping
-        var createdTask = await _context.Tasks
-            .Include(t => t.SubTasks)
-            .FirstAsync(t => t.Id == task.Id, cancellationToken);
+        // 使用 Repository 的優化方法取得任務，包含子任務統計
+        var taskDto = await _taskRepository.GetTaskByIdWithStatisticsAsync(
+            _currentUserService.UserId.Value,
+            task.Id,
+            cancellationToken);
 
-        var taskDto = _mapper.Map<TaskDto>(createdTask);
-        taskDto.SubTaskCount = createdTask.SubTasks.Count;
-        taskDto.CompletedSubTaskCount = createdTask.SubTasks.Count(st => st.Status == Domain.Enums.TaskStatus.Completed);
+        if (taskDto == null)
+        {
+            throw new InvalidOperationException("Failed to retrieve created task.");
+        }
 
         return taskDto;
     }
